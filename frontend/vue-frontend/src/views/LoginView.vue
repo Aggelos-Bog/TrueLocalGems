@@ -4,31 +4,20 @@
     class="d-flex align-center justify-center fill-height"
     fluid
   >
-  <div class="my-16">
     <v-card
       width="420"
-      class="pa-8 my-16 rounded-xl"
+      class="pa-8 rounded-xl"
       elevation="2"
       color="white"
       style="border: 1px solid #e5e5e5"
     >
       <div class="text-center mb-6">
         <h2 class="text-h4 font-weight-medium" style="color:#333;">
-          Register
+          Login
         </h2>
       </div>
 
-      <v-form @submit.prevent="handleRegister" v-model="valid">
-
-        <v-text-field
-          v-model="name"
-          label="Name"
-          variant="outlined"
-          density="comfortable"
-          class="mb-4"
-          bg-color="#f3f3f3"
-          :rules="[rules.required]"
-        />
+      <v-form @submit.prevent="handleLogin" v-model="valid">
 
         <v-text-field
           v-model="email"
@@ -47,28 +36,6 @@
           type="password"
           variant="outlined"
           density="comfortable"
-          class="mb-4"
-          bg-color="#f3f3f3"
-          :rules="[rules.required]"
-        />
-
-        <v-text-field
-          v-model="passwordConfirm"
-          label="Confirm Password"
-          type="password"
-          variant="outlined"
-          density="comfortable"
-          class="mb-4"
-          bg-color="#f3f3f3"
-          :rules="[rules.required, rules.matchPassword]"
-        />
-
-        <v-select
-          v-model="role"
-          label="Role"
-          :items="['traveller', 'guide']"
-          variant="outlined"
-          density="comfortable"
           class="mb-6"
           bg-color="#f3f3f3"
           :rules="[rules.required]"
@@ -82,19 +49,18 @@
           color="#8d0040"
           variant="flat"
         >
-          Create Account
+          Sign In
         </v-btn>
 
       </v-form>
 
       <p class="text-center mt-4" style="color:#666;">
-        Already have an account?
-        <router-link to="/login" style="color:#e3257b; text-decoration: underline;">
-          Sign In
+        Don’t have an account?
+        <router-link to="/register" style="color:#e3257b; text-decoration: underline;">
+          Register
         </router-link>
       </p>
     </v-card>
-    </div>
   </v-container>
 </template>
 
@@ -102,40 +68,32 @@
 import NavBar from '@/components/NavBar.vue';
 
 export default {
-  name: "RegisterView",
+  name: "LoginView",
 
   data() {
     return {
       valid: false,
-      name: "",
       email: "",
       password: "",
-      passwordConfirm: "",
-      role: "",
       rules: {
         required: v => !!v || "This field is required",
-        matchPassword: v => v === this.password || "Passwords must match"
       },
-    };
+    }
   },
 
   methods: {
-    handleRegister() {
+    handleLogin() {
       if (this.valid) {
-        console.log("Registering:", {
-          name: this.name,
-          email: this.email,
-          role: this.role
-        });
+        console.log("Logging in:", this.email)
       }
     },
   },
-};
+}
 </script>
 
 <style scoped>
-.v-text-field .v-field,
-.v-select .v-field {
+/* Adds screenshot-like softness */
+.v-text-field .v-field {
   border-radius: 12px !important;
 }
 </style>

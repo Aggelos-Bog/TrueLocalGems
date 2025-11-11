@@ -5,14 +5,7 @@
       height="65vh"
       elevation="10"
       class="d-flex flex-column align-center justify-center text-center"
-      ref="heroSection"
     >
-      <!-- 🌟 Sticky Top App Bar -->
-      <!-- The elevation changes dynamically when you scroll past the hero section -->
-      
-
-        <NavBar :isScrolled="isScrolled"/>
-
 
       <!-- Hero content -->
       <div class="d-flex align-center justify-space-evenly w-100 mt-8">
@@ -26,15 +19,17 @@
           <v-spacer class=""></v-spacer>
 
           <div class="d-flex align-center">
-            <v-text-field
+            <v-select
               v-model="destination"
-              hide-details
+              :items="countries"
+              placeholder="Choose Country"
               variant="solo-filled"
               rounded="pill"
-              placeholder="Where to next?"
               class="rounded-pill mr-2 bg-white"
               density="comfortable"
-            ></v-text-field>
+              hide-details
+            ></v-select>
+
             <v-btn color="lime-darken-2" class="rounded-pill" size="large">Search</v-btn>
           </div>
         </div>
@@ -61,33 +56,29 @@
 </template>
 
 <script setup>
-    import NavBar from '@/components/NavBar.vue'
-    import heroImage from '@/assets/images/home-page.png'
-    import { ref, onMounted, onUnmounted } from 'vue'
+import NavBar from '@/components/NavBar.vue'
+import heroImage from '@/assets/images/home-page.png'
+import { ref, onMounted } from 'vue'
 
-    const drawer = ref(false) // 👈 state for mobile menu
-    const destination = ref('')
-    // 🔄 Reactive state that tracks whether we've scrolled past the hero section
-    const isScrolled = ref(false)
-    // 📏 Reference to the hero section element so we can measure its height
-    const heroSection = ref(null)
+const destination = ref('')
+const countries = ref([])
 
-    // 🧩 Function that runs whenever the user scrolls
-    // If the scroll position (window.scrollY) is greater than the hero’s height,
-    // it means the user has scrolled past the hero — so we apply elevation.
-    const handleScroll = () => {
-    const heroHeight = heroSection.value?.offsetHeight || 0
-    isScrolled.value = window.scrollY > heroHeight
-    }
+onMounted(async () => {
+  try {
+    const res = await fetch(
+      'https://restcountries.com/v3.1/region/europe?fields=name'
+    )
+    const data = await res.json()
 
-    // ⚙️ Lifecycle hooks to register/unregister the scroll event listener
-    onMounted(() => {
-        window.addEventListener('scroll', handleScroll)
-    })
-    onUnmounted(() => {
-        window.removeEventListener('scroll', handleScroll)
-    })
+    countries.value = data
+      .map(c => c.name.common)
+      .sort()
+  } catch (error) {
+    console.error('Error fetching countries:', error)
+  }
+})
 </script>
+
 
 <style scoped>
 /* ✨ Smooth transition for shadow changes */

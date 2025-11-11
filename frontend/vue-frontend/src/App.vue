@@ -1,13 +1,28 @@
 <template>
   <v-app>
-    <HomeView />
+    <NavBar :isScrolled="finalScrolled" />
+
+    <router-view v-slot="{ Component }">
+      <component
+        :is="Component"
+        @scroll-change="isScrolled = $event"
+      />
+    </router-view>
   </v-app>
 </template>
 
 <script setup>
-import HomeView from './views/logged-out/HomeView.vue'
-</script>
+import NavBar from '@/components/NavBar.vue'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-<style scoped>
-/* optional styles */
-</style>
+const route = useRoute()
+const isScrolled = ref(false)
+
+// This computed decides the *actual* value sent to NavBar
+const finalScrolled = computed(() => {
+  return route.meta.forceScrolled === true
+    ? true
+    : isScrolled.value
+})
+</script>

@@ -4,6 +4,7 @@
 
     <!-- MAIN SECTION (rest of the page) -->
     <v-main class="py-16">
+      
       <v-container>
         <h2 class="text-h5 text-md-h4 font-weight-bold mb-6 text-center">
           Discover unique experiences
@@ -70,8 +71,30 @@
     </v-main>
 </template>
 
+
 <script setup>
-import HeroSection from '@/components/HeroSection.vue';
+  import HeroSection from '@/components/HeroSection.vue'
+  import { ref, onMounted, onUnmounted, watch } from 'vue'
+
+  const isScrolled = ref(false)
+
+  function handleScroll() {
+    isScrolled.value = window.scrollY > 20
+  }
+
+  // when scroll changes, notify parent
+  watch(isScrolled, (val) => {
+    emit('scroll-change', val)
+  })
+
+  onMounted(() => {
+    window.addEventListener('scroll', handleScroll)
+  })
+  onUnmounted(() => {
+    window.removeEventListener('scroll', handleScroll)
+  })
+
+  const emit = defineEmits(['scroll-change'])
 </script>
 
 <style scoped>

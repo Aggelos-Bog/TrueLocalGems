@@ -12,6 +12,7 @@ export const useNavStore = defineStore('nav', () => {
       left: [],
       right: [],
       utility: [
+        { label: 'register', to: '/register' },
         { label: 'Login', to: '/login', color: 'lime-darken-2', outlined: true },
       ],
     },

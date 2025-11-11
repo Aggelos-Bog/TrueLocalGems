@@ -8,7 +8,7 @@
   >
     <!-- Left spacer (keeps the center block centered) -->
     <v-spacer v-if="rightLinksFlag" class="d-none d-md-flex"></v-spacer>
-    <v-spacer></v-spacer>
+    <v-spacer v-if="rightLinksFlag"></v-spacer>
 
     <!-- CENTER GROUP: left links + logo + right links -->
     <div class="d-flex align-center">
@@ -28,8 +28,19 @@
       </div>
 
       <!-- Logo -->
-      <v-img :src="logo" alt="Logo" width="150" height="150" contain />
-
+       <v-btn
+          to="/"
+          variant="plain"
+          class="mx-6 p-0"
+          style="min-width: unset; height: auto; opacity: 1 !important;"
+        >
+          <v-img
+            :src="logo"
+            alt="Logo"
+            width="140"
+            contain
+          />
+        </v-btn>
       <!-- Center-Right links -->
       <div class="d-none d-md-flex align-center">
         <v-btn
@@ -69,14 +80,39 @@
   </v-app-bar>
           <v-navigation-drawer v-model="drawer" app temporary location="right" color="#ffe4cc">
             <v-list>
-            <v-list-item title="Create a Trip" :to="{ name: 'create-trip' }" />
-            <v-list-item title="Favorites" />
-            <v-list-item title="Explore" />
-            <v-list-item title="Guides" />
-            <v-divider class="my-2"></v-divider>
-            <v-list-item title="Chat" />
-            <v-list-item title="My Trips" />
-            <v-list-item title="Log-out" />
+            <v-list-item  v-for="(link, i) in leftLinks"
+              :key="'util-' + i"
+              :to="link.to"
+              :variant="link.outlined ? 'outlined' : link.variant || 'text'"
+              :color="link.color || 'black'"
+              class="mx-2"
+              size="small"
+            >
+              {{ link.label }}
+            </v-list-item>
+            
+            <v-list-item  v-for="(link, i) in rightLinks"
+              :key="'util-' + i"
+              :to="link.to"
+              :variant="link.outlined ? 'outlined' : link.variant || 'text'"
+              :color="link.color || 'black'"
+              class="mx-2"
+              size="small"
+            >
+              {{ link.label }}
+            </v-list-item>
+            
+            <v-list-item  v-for="(link, i) in utilityLinks"
+              :key="'util-' + i"
+              :to="link.to"
+              :variant="link.outlined ? 'outlined' : link.variant || 'text'"
+              :color="link.color || 'black'"
+              class="mx-2"
+              size="small"
+            >
+              {{ link.label }}
+            </v-list-item>
+            
             </v-list>
         </v-navigation-drawer>
 </template>
