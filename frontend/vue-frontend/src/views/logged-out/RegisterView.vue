@@ -1,10 +1,9 @@
 <template>
-  <NavBar />
   <v-container
     class="d-flex align-center justify-center fill-height"
     fluid
   >
-  <div class="my-16">
+  
     <v-card
       width="420"
       class="pa-8 my-16 rounded-xl"
@@ -18,7 +17,7 @@
         </h2>
       </div>
 
-      <v-form @submit.prevent="handleRegister" v-model="valid">
+      <v-form ref="form" @submit.prevent="handleRegister" >
 
         <v-text-field
           v-model="name"
@@ -66,7 +65,7 @@
         <v-select
           v-model="role"
           label="Role"
-          :items="['traveller', 'guide']"
+          :items="['Traveller', 'Guide']"
           variant="outlined"
           density="comfortable"
           class="mb-6"
@@ -94,43 +93,78 @@
         </router-link>
       </p>
     </v-card>
-    </div>
   </v-container>
 </template>
 
-<script>
-import NavBar from '@/components/NavBar.vue';
+<script setup>
+import { ref, computed } from "vue";
+import { useRouter } from "vue-router";
+import { useNavStore } from '@/stores/navStore'
 
-export default {
-  name: "RegisterView",
 
-  data() {
-    return {
-      valid: false,
-      name: "",
-      email: "",
-      password: "",
-      passwordConfirm: "",
-      role: "",
-      rules: {
-        required: v => !!v || "This field is required",
-        matchPassword: v => v === this.password || "Passwords must match"
-      },
-    };
-  },
+const navStore = useNavStore()
+const router = useRouter();
+const name = ref("");
+const email = ref("");
+const password = ref("");
+const passwordConfirm = ref("");
+const role = ref("");
+const form = ref(null)
 
-  methods: {
-    handleRegister() {
-      if (this.valid) {
-        console.log("Registering:", {
-          name: this.name,
-          email: this.email,
-          role: this.role
-        });
-      }
-    },
-  },
+const rules = {
+  required: v => !!v || "This field is required",
+  matchPassword: v => v === password.value || "Passwords must match"
 };
+
+const valid = computed(() => {
+  return (
+    rules.required(name.value) === true &&
+    rules.required(email.value) === true &&
+    rules.required(password.value) === true &&
+    rules.matchPassword(passwordConfirm.value) === true
+  );
+});
+
+
+const handleRegister = async () => {
+  const { valid } = await form.value.validate();
+
+  if (!valid) return;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: name.value,
+        email: email.value,
+        password: password.value,
+        role: role.value === "Traveller" ? 0 : 1
+      })
+    })
+    const data = await res.json();
+
+    if (res.ok) {
+      console.log("User registered:", data.user);
+      console.log("Token:", data.token);
+      // Save token for logged-in state
+      localStorage.setItem("token", data.token);
+
+      // 🔥 Convert numeric role → string
+      const roleString = data.user.role === 1 ? "guide" : "traveller";
+
+      // 🔥 Update Pinia
+      navStore.setRole(roleString);
+      
+      router.push("/");        // ⬅ Redirect to HomeView
+    } else {
+      alert(data.error);
+    }
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 </script>
 
 <style scoped>

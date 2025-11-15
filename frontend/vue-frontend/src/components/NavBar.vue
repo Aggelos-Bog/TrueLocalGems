@@ -20,8 +20,7 @@
           :to="link.to"
           :variant="link.variant || 'text'"
           :color="link.color || 'black'"
-          class="mx-2"
-          size="small"
+          class="mx-2 nav-btn"
         >
           {{ link.label }}
         </v-btn>
@@ -31,7 +30,7 @@
        <v-btn
           to="/"
           variant="plain"
-          class="mx-6 p-0"
+          class="mx-6 p-0 nav-btn"
           style="min-width: unset; height: auto; opacity: 1 !important;"
         >
           <v-img
@@ -49,8 +48,7 @@
           :to="link.to"
           :variant="link.variant || 'text'"
           :color="link.color || 'black'"
-          class="mx-2"
-          size="small"
+          class="mx-2 nav-btn"
         >
           {{ link.label }}
         </v-btn>
@@ -68,49 +66,52 @@
       <v-btn
         v-for="(link, i) in utilityLinks"
         :key="'util-' + i"
-        :to="link.to"
+        @click="handleClick(link)"
         :variant="link.outlined ? 'outlined' : link.variant || 'text'"
         :color="link.color || 'black'"
-        class="mx-2"
-        size="small"
+        class="mx-2 nav-btn"
       >
         {{ link.label }}
       </v-btn>
+
     </div>
   </v-app-bar>
           <v-navigation-drawer v-model="drawer" app temporary location="right" color="#ffe4cc">
-            <v-list>
-            <v-list-item  v-for="(link, i) in leftLinks"
-              :key="'util-' + i"
-              :to="link.to"
-              :variant="link.outlined ? 'outlined' : link.variant || 'text'"
-              :color="link.color || 'black'"
-              class="mx-2"
-              size="small"
-            >
-              {{ link.label }}
+            <v-list class="d-flex flex-column ga-2" >
+            <v-list-item v-for="(link, i) in leftLinks" class="nav-btn">
+              <v-btn
+                :key="'left-' + i"
+                :to="link.to"
+                :variant="link.variant || 'text'"
+                :color="link.color || 'black'"
+                class="mx-2"
+              >
+                {{ link.label }}
+              </v-btn>
             </v-list-item>
             
-            <v-list-item  v-for="(link, i) in rightLinks"
-              :key="'util-' + i"
-              :to="link.to"
-              :variant="link.outlined ? 'outlined' : link.variant || 'text'"
-              :color="link.color || 'black'"
-              class="mx-2"
-              size="small"
-            >
-              {{ link.label }}
+            <v-list-item  v-for="(link, i) in rightLinks" class="nav-btn">
+              <v-btn
+                :key="'right-' + i"
+                :to="link.to"
+                :variant="link.variant || 'text'"
+                :color="link.color || 'black'"
+                class="mx-2"
+              >
+                {{ link.label }}
+              </v-btn>
             </v-list-item>
             
-            <v-list-item  v-for="(link, i) in utilityLinks"
+            <v-list-item  v-for="(link, i) in utilityLinks" class="nav-btn">
+             <v-btn
               :key="'util-' + i"
-              :to="link.to"
+              @click="handleClick(link)"
               :variant="link.outlined ? 'outlined' : link.variant || 'text'"
               :color="link.color || 'black'"
               class="mx-2"
-              size="small"
             >
               {{ link.label }}
+            </v-btn>
             </v-list-item>
             
             </v-list>
@@ -118,26 +119,57 @@
 </template>
 
 <script setup>
-import logo from '@/assets/images/logo-tlg.png'
-import { ref, computed } from 'vue'
-import { useNavStore } from '@/stores/navStore'
-import { storeToRefs } from 'pinia'
+  import logo from '@/assets/images/logo-tlg.png'
+  import { ref, computed } from 'vue'
+  import { useNavStore } from '@/stores/navStore'
+  import { storeToRefs } from 'pinia'
+  import { useRouter } from "vue-router";
 
-// Props from parent (still keep for scroll)
-const props = defineProps({
-  isScrolled: Boolean,
-})
+  // Props from parent (still keep for scroll)
+  const props = defineProps({
+    isScrolled: Boolean,
+  })
 
-const drawer = ref(false)
 
-// 🏪 Grab links from Pinia store
-const navStore = useNavStore()
-const { leftLinks, rightLinks, utilityLinks } = storeToRefs(navStore)
+  const drawer = ref(false)
 
-// ✅ Flag to check if rightLinks exist
-const rightLinksFlag = computed(
-  () => Array.isArray(rightLinks.value) && rightLinks.value.length > 0
-)
+  const router = useRouter();
+
+  // 🏪 Grab links from Pinia store
+  const navStore = useNavStore()
+  const { leftLinks, rightLinks, utilityLinks } = storeToRefs(navStore)
+
+  // ✅ Flag to check if rightLinks exist
+  const rightLinksFlag = computed(
+    () => Array.isArray(rightLinks.value) && rightLinks.value.length > 0
+  )
+
+
+
+  function handleClick(link) {
+    if (link.label === "Logout") {
+      navStore.logout();
+      router.push("/");
+    } else {
+      router.push(link.to);
+    }
+  }
 
 </script>
+<style scoped>
 
+  .v-btn {
+    text-transform: none !important;
+  }
+
+  .nav-btn {
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+
+.nav-btn:hover {
+  transform: translateY(-3px);
+  opacity: 0.85;
+}
+
+
+</style>

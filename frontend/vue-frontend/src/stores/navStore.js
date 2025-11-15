@@ -12,7 +12,7 @@ export const useNavStore = defineStore('nav', () => {
       left: [],
       right: [],
       utility: [
-        { label: 'register', to: '/register' },
+        { label: 'Register', to: '/register' },
         { label: 'Login', to: '/login', color: 'lime-darken-2', outlined: true },
       ],
     },
@@ -20,7 +20,7 @@ export const useNavStore = defineStore('nav', () => {
     traveller: {
       left: [
         { label: 'Create a Trip', to: '/create-trip' },
-        { label: 'Favorites', to: '/favorites' },
+        { label: 'Favorite Guides', to: '/favorites' },
       ],
       right: [
         { label: 'Explore', to: '/explore' },
@@ -29,7 +29,7 @@ export const useNavStore = defineStore('nav', () => {
       utility: [
         { label: 'Chat', to: '/chat' },
         { label: 'My Trips', to: '/my-trips' },
-        { label: 'Logout', to: '/logout', outlined: true, color: 'lime-darken-2' },
+        { label: 'Logout', outlined: true, color: 'lime-darken-2' },
       ],
     },
 
@@ -64,11 +64,19 @@ export const useNavStore = defineStore('nav', () => {
     }
   }
 
+
+  // 🔐 logout function
+  function logout() {
+    role.value = "guest";
+    localStorage.removeItem("token");
+  }
+
   return {
     role,
     leftLinks,
     rightLinks,
     utilityLinks,
+    logout,
     setRole,
   }
 })

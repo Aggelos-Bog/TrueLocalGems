@@ -19,16 +19,17 @@
           <v-spacer class=""></v-spacer>
 
           <div class="d-flex align-center">
-            <v-select
+            <v-autocomplete
               v-model="destination"
               :items="countries"
-              placeholder="Choose Country"
+              label="Destination Country"
               variant="solo-filled"
               rounded="pill"
               class="rounded-pill mr-2 bg-white"
               density="comfortable"
               hide-details
-            ></v-select>
+              clearable
+            ></v-autocomplete>
 
             <v-btn color="lime-darken-2" class="rounded-pill" size="large">Search</v-btn>
           </div>

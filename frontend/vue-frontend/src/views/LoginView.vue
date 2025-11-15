@@ -1,5 +1,4 @@
 <template>
-  <NavBar />
   <v-container
     class="d-flex align-center justify-center fill-height"
     fluid
@@ -64,31 +63,61 @@
   </v-container>
 </template>
 
-<script>
-import NavBar from '@/components/NavBar.vue';
+<script setup>
+  import { ref, computed } from "vue";
+  import { useRouter } from "vue-router";
+  import { useNavStore } from '@/stores/navStore'
 
-export default {
-  name: "LoginView",
+  const navStore = useNavStore()
+  const router = useRouter();
 
-  data() {
-    return {
-      valid: false,
-      email: "",
-      password: "",
-      rules: {
-        required: v => !!v || "This field is required",
-      },
+  const email = ref("");
+  const password = ref("");
+
+  const rules = {
+    required: v => !!v || "This field is required",
+  };
+
+  const valid = computed(() => {
+    return (
+      rules.required(email.value) === true &&
+      rules.required(password.value) === true
+    );
+  });
+
+const handleLogin = async () => {
+  if (!valid.value) return;
+
+  try {
+    const res = await fetch("http://localhost:3000/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: email.value,
+        password: password.value
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      localStorage.setItem("token", data.token);
+      // 🔥 Convert numeric role → string
+      const roleString = data.user.role === 1 ? "guide" : "traveller";
+
+      // 🔥 Update Pinia
+      navStore.setRole(roleString);
+
+      router.push("/");
+    } else {
+      alert(data.error);
     }
-  },
+  } catch (err) {
+    console.error(err);
+  }
+};
 
-  methods: {
-    handleLogin() {
-      if (this.valid) {
-        console.log("Logging in:", this.email)
-      }
-    },
-  },
-}
+
 </script>
 
 <style scoped>
