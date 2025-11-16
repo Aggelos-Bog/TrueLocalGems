@@ -20,31 +20,28 @@ export const useNavStore = defineStore('nav', () => {
     traveller: {
       left: [
         { label: 'Create a Trip', to: '/create-trip' },
-        { label: 'Favorite Guides', to: '/favorites' },
+        { label: 'My Trips', to: '/my-trips' },
       ],
       right: [
-        { label: 'Explore', to: '/explore' },
-        { label: 'Guides', to: '/guides' },
+        { label: 'My Trips', to: '/MyTrips' },
+        { label: 'Favorite Guides', to: '/favorites' },
       ],
       utility: [
         { label: 'Chat', to: '/chat' },
-        { label: 'My Trips', to: '/my-trips' },
         { label: 'Logout', outlined: true, color: 'lime-darken-2' },
       ],
     },
 
     guide: {
       left: [
-        { label: 'My Tours', to: '/guide/tours' },
-        { label: 'Bookings', to: '/guide/bookings' },
+        { label: 'Book Mark', to: '/guide/bookings' },
       ],
       right: [
-        { label: 'Explore', to: '/explore' },
-        { label: 'Blog', to: '/blog' },
+        { label: 'My Tours', to: '/guide/tours' },
       ],
       utility: [
-        { label: 'Messages', to: '/messages' },
-        { label: 'Profile', to: '/profile' },
+        { label: 'Chat', to: '/Chat' },
+        { label: 'Profile', to: '/GuideProfile' },
         { label: 'Logout', to: '/logout', outlined: true, color: 'lime-darken-2' },
       ],
     },

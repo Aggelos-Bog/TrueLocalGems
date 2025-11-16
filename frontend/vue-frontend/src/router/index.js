@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/logged-out/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/logged-out/RegisterView.vue'
+import GuideRegister from '../views/Guide/GuideRegister.vue'
+import GuideProfile from '../views/Guide/GuideProfile.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -20,6 +22,18 @@ const router = createRouter({
       path: '/login',
       name: 'login',
       component: LoginView,
+      meta: { forceScrolled: true }
+    },
+    {
+      path: '/GuideRegister',
+      name: 'GuideRegister',
+      component: GuideRegister,
+      meta: { forceScrolled: true }
+    },
+    {
+      path: '/GuideProfile',
+      name: 'GuideProfile',
+      component: GuideProfile,
       meta: { forceScrolled: true }
     },
     {
