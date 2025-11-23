@@ -32,12 +32,12 @@
         <v-text-field
           v-model="password"
           label="Password"
-          type="password"
+          :type="showPassword ? 'text' : 'password'"
           variant="outlined"
-          density="comfortable"
-          class="mb-6"
-          bg-color="#f3f3f3"
-          :rules="[rules.required]"
+          class="mb-4"
+          :rules="[rules.required, rules.min6]"
+          :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+          @click:append-inner="showPassword = !showPassword"
         />
 
         <v-btn
@@ -73,6 +73,8 @@
 
   const email = ref("");
   const password = ref("");
+  
+  const showPassword = ref(false);
 
   const rules = {
     required: v => !!v || "This field is required",

@@ -87,25 +87,30 @@
               clearable
             />
 
-            <v-select
+            <v-autocomplete
               v-model="guide.from"
-              label="From"
-              :items="countries"
+              label="Country"
+              :items="countries.map(c => c.name)"
               variant="outlined"
               class="mb-4"
               :rules="[rules.required]"
               clearable
             />
 
-            <!-- NEW CITY FIELD -->
-            <v-text-field
-              v-model="guide.city"
-              label="City"
-              variant="outlined"
-              class="mb-4"
-              :rules="[rules.required]"
-              clearable
-            />
+
+            <!-- CITY FIELD -->
+          <v-autocomplete
+            v-model="guide.city"
+            label="City"
+            :items="cityOptions"
+            :disabled="isCityDisabled"
+            variant="outlined"
+            class="mb-4"
+            :class="{ 'city-disabled': isCityDisabled }"
+            :rules="[rules.required]"
+            clearable
+          />
+
 
             <v-textarea
               v-model="guide.about"
@@ -172,9 +177,14 @@
 
 
 <script setup>
-  import { ref, computed, watch } from "vue";
+  import { ref, computed, watch, onMounted  } from "vue";
   import { useRouter } from "vue-router";
   import { useNavStore } from '@/stores/navStore';
+  import { useCityStore } from "@/stores/useCityStore";  
+
+  const cityOptions = ref([]);
+
+  const cityStore = useCityStore();
 
   const navStore = useNavStore();
   const router = useRouter();
@@ -190,11 +200,12 @@
   const countries = ref([]);
   const showPassword = ref(false);
   const showPasswordConfirm  = ref(false);
+  const isCityDisabled = ref(true);
 
   const guide = ref({
     language: [],
-    from: "",
-    city: "",
+    from: null,
+    city: null,
     about: "",
     interests: null
   });
@@ -277,20 +288,24 @@
   };
 
 
-  const loadCountries = async () => {
-    try {
-      const res = await fetch(
-        'https://restcountries.com/v3.1/region/europe?fields=name'
-      )
-      const data = await res.json()
+ const loadCountries = async () => {
+  try {
+    const res = await fetch(
+      'https://restcountries.com/v3.1/region/europe?fields=name,cca2'
+    )
+    const data = await res.json()
 
-      countries.value = data
-        .map(c => c.name.common)
-        .sort()
-    } catch (error) {
-      console.error('Error fetching countries:', error)
-    }
-  };
+    countries.value = data
+      .map(c => ({
+        name: c.name.common, // e.g., 'Greece'
+        code: c.cca2 // e.g., 'GR' for Greece
+      }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+
+  } catch (error) {
+    console.error('Error fetching countries:', error)
+  }
+};
 
 
   // Load languages, Countries when Step 2 is reached
@@ -300,14 +315,38 @@
       loadCountries();
     }
   });
-watch(
-  () => guide.value.language,
-  (newVal) => {
-    console.log("Selected languages:", guide.value.language);
-    console.log("Selected languages:", guide.value.about);
-  },
-  { deep: true } // because it's an array
-);
+  watch(
+    () => guide.value.language,
+    (newVal) => {
+      console.log("Selected languages:", guide.value.language);
+      console.log("Selected languages:", guide.value.about);
+    },
+    { deep: true } // because it's an array
+  );
+
+
+  watch(() => guide.value.from, (selectedName) => {
+    // Disable when no country selected
+    if (!selectedName) {
+      isCityDisabled.value = true;
+      guide.value.city = null;
+      cityOptions.value = [];
+      return;
+    }
+
+    // Enable when country selected
+    isCityDisabled.value = false;
+
+    const country = countries.value.find(c => c.name === selectedName);
+    if (!country) {
+      cityOptions.value = [];
+      return;
+    }
+
+    cityOptions.value = cityStore.getCitiesByIso(country.code);
+  });
+
+
 
 
   
