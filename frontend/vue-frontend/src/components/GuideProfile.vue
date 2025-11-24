@@ -9,9 +9,8 @@
       <!-- LEFT COLUMN (fixed height desktop, auto mobile) -->
       <v-col cols="12" md="4">
       <v-card
-        elevation="8"
+        elevation="4"
         rounded="xl"
-        variant="outlined-light"
         class="pa-4 card-hover"
         style="height: 250px;"
         >
@@ -68,9 +67,8 @@
       <!-- RIGHT COLUMN (auto height) -->
       <v-col cols="12" md="8">
         <v-card
-          elevation="8"
+          elevation="4"
           rounded="xl"
-          variant="outlined-light"
           class="pa-8 card-hover"
         >
 
@@ -132,10 +130,9 @@
 
     <v-row>
         <v-col cols="12" md="8">
-             <v-card
+            <v-card
             elevation="2"
             rounded="xl"
-            variant="outlined-light"
             class="pa-4 mb-4 review-card card-hover"
             >
                 <v-row>
@@ -185,9 +182,37 @@
   </v-container>
 </template>
 
-<script setup> 
-import heroImage from '@/assets/images/home-page.png' 
+<script setup>
+  import { ref, onMounted, defineEmits } from "vue";
+  import { useRoute } from "vue-router";
+  import heroImage from "@/assets/images/home-page.png";
+  defineEmits(["scroll-change"])
+
+  const route = useRoute();
+  const guideId = route.params.id;
+
+  const guide = ref(null);
+  const loading = ref(true);
+  const error = ref(null);
+
+  async function loadGuide() {
+    try {
+      const res = await fetch(`http://localhost:3000/guides/${guideId}`);
+      if (!res.ok) throw new Error("Guide not found");
+
+      guide.value = await res.json();
+    } catch (err) {
+      error.value = err.message;
+    } finally {
+      loading.value = false;
+    }
+  }
+
+  onMounted(() => {
+    loadGuide();
+  });
 </script>
+
 
 <style scoped>
 .card-hover {
@@ -195,7 +220,7 @@ import heroImage from '@/assets/images/home-page.png'
 }
 
 .card-hover:hover {
-  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.75) !important;
+  box-shadow: 0px 6px 20px rgba(0, 0, 0, 0.35) !important;
   transform: translateY(-1px); /* optional, gives a nice lift */
 }
 </style>

@@ -120,10 +120,11 @@
 
 <script setup>
   import logo from '@/assets/images/logo-tlg.png'
-  import { ref, computed } from 'vue'
+  import { ref, computed, defineEmits } from 'vue'
   import { useNavStore } from '@/stores/navStore'
   import { storeToRefs } from 'pinia'
   import { useRouter } from "vue-router";
+
 
   // Props from parent (still keep for scroll)
   const props = defineProps({
@@ -146,14 +147,24 @@
 
 
 
-  function handleClick(link) {
-    if (link.label === "Logout") {
-      navStore.logout();
-      router.push("/");
-    } else {
-      router.push(link.to);
-    }
+function handleClick(link) {
+  if (link.action === "go-profile") {
+    const id = navStore.userId;
+    console.log("Going to profile...", id);
+    if (!id) return;
+
+    router.push(`/guide/${id}`);
+    return;
   }
+
+  if (link.label === "Logout") {
+    navStore.logout();
+    router.push("/");
+    return;
+  }
+
+  if (link.to) router.push(link.to);
+}
 
 </script>
 <style scoped>

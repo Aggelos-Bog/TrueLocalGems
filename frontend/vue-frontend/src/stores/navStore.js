@@ -1,10 +1,13 @@
 // src/stores/navStore.js
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { jwtDecode  } from "jwt-decode"
+
 
 export const useNavStore = defineStore('nav', () => {
   // 👤 current role: guest | traveller | guide
   const role = ref('guest')
+  const userId = ref(null)
 
   // 🧩 Link sets for each role
   const linkSets = {
@@ -41,7 +44,7 @@ export const useNavStore = defineStore('nav', () => {
       ],
       utility: [
         { label: 'Chat', to: '/Chat' },
-        { label: 'Profile', to: '/GuideProfile' },
+        { label: "Profile", action: "go-profile" },
         { label: 'Logout', to: '/logout', outlined: true, color: 'lime-darken-2' },
       ],
     },
@@ -61,6 +64,20 @@ export const useNavStore = defineStore('nav', () => {
     }
   }
 
+  function loadFromToken() {
+    const token = localStorage.getItem("token");
+    if (!token) return;
+
+    try {
+      const decoded = jwtDecode(token);
+      console.log("Decoded token →", decoded);
+      userId.value = decoded.id;
+      role.value = decoded.role;
+    } catch (err) {
+      console.error("Invalid JWT", err);
+      logout();
+    }
+  }
 
   // 🔐 logout function
   function logout() {
@@ -70,9 +87,11 @@ export const useNavStore = defineStore('nav', () => {
 
   return {
     role,
+    userId,
     leftLinks,
     rightLinks,
     utilityLinks,
+    loadFromToken,
     logout,
     setRole,
   }

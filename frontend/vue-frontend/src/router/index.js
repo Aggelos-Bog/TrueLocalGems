@@ -2,7 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/logged-out/HomeView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/logged-out/RegisterView.vue'
-import GuideProfile from '../views/Guide/GuideProfile.vue'
+import GuideProfile from '../components/GuideProfile.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -24,9 +24,9 @@ const router = createRouter({
       meta: { forceScrolled: true }
     },
     {
-      path: '/GuideProfile',
-      name: 'GuideProfile',
-      component: GuideProfile,
+      path: "/guide/:id",
+      name: "GuideProfile",
+      component: () => import("@/components/GuideProfile.vue"),
       meta: { forceScrolled: true }
     },
     {
