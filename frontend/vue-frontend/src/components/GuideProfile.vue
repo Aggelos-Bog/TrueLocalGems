@@ -13,15 +13,33 @@
 
             <!-- LEFT SIDE -->
             <v-col cols="6" class="d-flex flex-column align-center justify-center">
-              <v-avatar size="80" class="mb-2">
-                <v-img :src="guide?.img_url || heroImage" />
+              <v-avatar v-if="!isEditing" size="80" class="mb-2">
+                <v-img :src="guide?.img_url" />
               </v-avatar>
-
-              <div class="text-subtitle-1 font-weight-medium">
-                {{ guide?.name || "Unknown" }}
+              <div v-else class="flex justify-center col-span-3 mb-4">
+                <PhotoForUser 
+                  v-model="editForm.img_url" 
+                  :initial-image="guide?.img_url"
+                  :upload-url="`http://localhost:3000/guides/${guideId}/photo`"
+                />
               </div>
 
-              <div class="text-caption text-medium-emphasis">Local guide</div>
+              <div v-if="!isEditing" class="text-subtitle-1 font-weight-medium">
+                {{ guide?.user_name || "Unknown" }}
+              </div>
+              <v-text-field
+                  v-else
+                  v-model="editForm.user_name"
+                  label="name"
+                  style="width: 7.5rem;"
+                  variant="solo"
+                  rounded="lg"
+                  density="compact"
+                  bg-color="white"
+                  hide-details
+                ></v-text-field>
+
+              <div v-if="!isEditing" class="text-caption text-medium-emphasis">Local guide</div>
             </v-col>
 
             <v-divider vertical class="my-auto" style="height: 70%;"></v-divider>
@@ -63,6 +81,11 @@
                   v-model="editForm.price_per_hour"
                   type="number"
                   label="Price per hour"
+                  variant="solo"
+                  rounded="lg"
+                  density="compact"
+                  bg-color="white"
+                  hide-details
                 ></v-text-field>
               </div>
 
@@ -77,14 +100,40 @@
 
           <div class="d-flex justify-space-between align-center mb-4">
             <div class="text-h6">About me</div>
-            <v-icon @click="toggleEdit">
-              {{ isEditing ? 'mdi-check' : 'mdi-pencil' }}
-            </v-icon>
+            
+            <div class="d-flex align-center">
+              <!-- Public/Private Status Indicator (Read-only) -->
+              <v-chip
+                v-if="canEdit && !isEditing"
+                :color="guide?.public_enable ? 'success' : 'grey'"
+                size="small"
+                class="mr-2"
+                variant="flat"
+              >
+                {{ guide?.public_enable ? 'Public' : 'Private' }}
+              </v-chip>
+
+               <!-- Public Toggle (Edit Mode) -->
+               <v-switch
+                v-if="isEditing"
+                v-model="editForm.public_enable"
+                :label="editForm.public_enable ? 'Public' : 'Private'"
+                color="success"
+                hide-details
+                density="compact"
+                class="mr-4"
+                inset
+              ></v-switch>
+
+              <v-icon v-if="canEdit" @click="toggleEdit">
+                {{ isEditing ? 'mdi-check' : 'mdi-pencil' }}
+              </v-icon>
+            </div>
 
           </div>
 
           <div class="my-2">
-            <strong v-if="!isEditing">Language :</strong>
+            <strong v-if="!isEditing">Language: </strong>
 
             <template v-if="!isEditing">
               {{ guide?.languages?.join(', ') }}
@@ -95,7 +144,10 @@
               v-model="editForm.languages"
               label="Languages"
               :items="languageOptions"
-              variant="outlined"
+              variant="solo"
+              rounded="lg"
+              density="comfortable"
+              bg-color="white"
               multiple
               chips
               clearable
@@ -106,7 +158,7 @@
 
 
           <div class="my-2">
-            <strong v-if="!isEditing">From :</strong>
+            <strong v-if="!isEditing">From: </strong>
 
             <template v-if="!isEditing">
               {{ guide?.city }}, {{ guide?.country }}
@@ -120,7 +172,10 @@
                     label="City"
                     :items="cityOptions"
                     :disabled="isCityDisabled"
-                    variant="outlined"
+                    variant="solo"
+                    rounded="lg"
+                    density="comfortable"
+                    bg-color="white"
                     clearable
                   ></v-autocomplete>
 
@@ -129,7 +184,10 @@
                   <v-autocomplete
                     v-model="editForm.country"
                     label="Country"
-                    variant="outlined"
+                    variant="solo"
+                    rounded="lg"
+                    density="comfortable"
+                    bg-color="white"
                     :items="countries.map(c => c.name)"
                     clearable
                   ></v-autocomplete>
@@ -149,6 +207,9 @@
             v-model="editForm.bio"
             label="Biography"
             rows="6"
+            variant="solo"
+            rounded="lg"
+            bg-color="white"
           ></v-textarea>
 
 
@@ -169,6 +230,10 @@
             closable-chips
             clearable
             hide-selected
+            variant="solo"
+            rounded="lg"
+            density="comfortable"
+            bg-color="white"
           ></v-combobox>
 
 
@@ -239,16 +304,22 @@
 </template>
 
 <script setup>
-  import { ref, onMounted, watch } from "vue";
+  import { ref, onMounted, watch, computed } from "vue";
   import { useRoute } from "vue-router";
   import heroImage from "@/assets/images/home-page.png";
   import { useCityStore } from "@/stores/useCityStore";
-  
+  import { useNavStore } from "@/stores/navStore";
+  import PhotoForUser from "@/components/PhotoForUser.vue"
+
+
+
+  const navStore = useNavStore();
   const cityStore = useCityStore();
   const languageOptions = ref([]);
   const countries = ref([]);
   const cityOptions = ref([]);
   const isCityDisabled = ref(true);
+
 
 
   const route = useRoute();
@@ -260,6 +331,10 @@
 
   const isEditing = ref(false);
   const editForm = ref({});
+
+  const canEdit = computed(() => {
+    return Number(navStore.userId) === Number(guideId);
+  });
 
   watch(() => editForm.value.country, (selectedName) => {
    if (!selectedName) {

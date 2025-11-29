@@ -82,8 +82,10 @@ export const useNavStore = defineStore('nav', () => {
   // 🔐 logout function
   function logout() {
     role.value = "guest";
+    userId.value = null;     // 🔥 IMPORTANT
     localStorage.removeItem("token");
   }
+
 
   return {
     role,

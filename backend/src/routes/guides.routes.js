@@ -1,12 +1,10 @@
-import express from "express";
-import { getGuide, updateGuide } from "../controllers/guides.controller.js";
+import { Router } from "express";
+import * as guideController from "../controllers/guides.controller.js";
 
-const router = express.Router();
+const router = Router();
 
-// GET guide by ID
-router.get("/:id", getGuide);
-
-// UPDATE guide by ID
-router.put("/:id", updateGuide);
+router.get("/:id", guideController.getGuide);
+router.put("/:id", guideController.updateGuide);
+router.post("/:id/photo", guideController.uploadPhoto);
 
 export default router;

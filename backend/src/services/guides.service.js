@@ -6,15 +6,26 @@ import db from "../config/database.js";
 export async function getGuide(id) {
   const result = await db.query(
     `SELECT 
-      guide_id, languages, city, country, img_url, bio,
-      price_per_hour, public_enable, rating_avg, interests
-     FROM guides 
-     WHERE guide_id = $1`,
+      g.guide_id,
+      g.languages,
+      g.city,
+      g.country,
+      g.img_url,
+      g.bio,
+      g.price_per_hour,
+      g.public_enable,
+      g.rating_avg,
+      g.interests,
+      u.name AS user_name
+     FROM guides g
+     JOIN users u ON u.user_id = g.guide_id
+     WHERE g.guide_id = $1`,
     [id]
   );
 
   return result.rows[0] || null;
 }
+
 
 // ----------------------------------------------------------------------
 // UPDATE
@@ -28,10 +39,12 @@ export async function updateGuide(id, updates) {
     bio,
     price_per_hour,
     public_enable,
-    interests
+    interests,
+    user_name   // 👈 ADD THIS
   } = updates;
 
-  const result = await db.query(
+  // 1️⃣ Update guides table
+  const guideResult = await db.query(
     `UPDATE guides SET
       languages = COALESCE($1, languages),
       city = COALESCE($2, city),
@@ -42,7 +55,7 @@ export async function updateGuide(id, updates) {
       public_enable = COALESCE($7, public_enable),
       interests = COALESCE($8, interests)
      WHERE guide_id = $9
-     RETURNING *`,
+     RETURNING guide_id`,
     [
       languages,
       city,
@@ -56,9 +69,30 @@ export async function updateGuide(id, updates) {
     ]
   );
 
-  if (result.rows.length === 0) {
+  if (guideResult.rows.length === 0) {
     throw new Error("Guide not found");
   }
 
-  return result.rows[0];
+  // 2️⃣ Update user name ONLY if provided
+  if (user_name !== undefined) {
+    await db.query(
+      `UPDATE users SET
+         name = COALESCE($1, name)
+       WHERE user_id = $2`,
+      [user_name, id]
+    );
+  }
+
+  // 3️⃣ Return updated joined data
+  const fullResult = await db.query(
+    `SELECT 
+        g.*,
+        u.name AS user_name
+     FROM guides g
+     JOIN users u ON u.user_id = g.guide_id
+     WHERE g.guide_id = $1`,
+    [id]
+  );
+
+  return fullResult.rows[0];
 }

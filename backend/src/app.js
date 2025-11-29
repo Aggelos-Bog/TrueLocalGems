@@ -7,6 +7,7 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
+app.use("/public", express.static("Public"));
 
 // Mount routes here
 app.use("/api/auth", authRoutes);

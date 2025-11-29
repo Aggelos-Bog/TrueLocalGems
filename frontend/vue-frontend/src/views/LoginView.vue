@@ -107,6 +107,9 @@ const handleLogin = async () => {
       // 🔥 Convert numeric role → string
       const roleString = data.user.role === 1 ? "guide" : "traveller";
 
+       // 3️⃣ Load new token into store (VERY IMPORTANT 🔥)
+      navStore.loadFromToken();  
+
       // 🔥 Update Pinia
       navStore.setRole(roleString);
 
