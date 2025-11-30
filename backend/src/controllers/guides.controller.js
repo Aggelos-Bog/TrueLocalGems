@@ -18,6 +18,15 @@ export async function getGuide(req, res) {
   }
 }
 
+export async function getAllPublicGuides(req, res) {
+  try {
+    const guides = await guideService.getAllPublicGuides();
+    res.status(200).json(guides);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
 export async function updateGuide(req, res) {
   try {
     const guideId = req.params.id;

@@ -26,6 +26,23 @@ export async function getGuide(id) {
   return result.rows[0] || null;
 }
 
+export async function getAllPublicGuides() {
+  const result = await db.query(
+    `SELECT 
+      u.name,
+      g.city,
+      g.country,
+      g.price_per_hour,
+      g.img_url,
+      g.rating_avg
+     FROM guides g
+     JOIN users u ON u.user_id = g.guide_id
+     WHERE g.public_enable = true`
+  );
+
+  return result.rows;
+}
+
 
 // ----------------------------------------------------------------------
 // UPDATE
