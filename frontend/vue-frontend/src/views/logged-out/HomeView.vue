@@ -12,8 +12,8 @@
 
         <v-row>
           <v-col
-            v-for="n in 6"
-            :key="n"
+            v-for="(item, index) in displayItems"
+            :key="index"
             cols="12"
             sm="6"
             md="4"
@@ -22,6 +22,7 @@
             <component
               :is="cards[nav.cardType]"
               class="mx-auto"
+              v-bind="nav.cardType === 'guide' ? { guide: item } : {}"
             />
           </v-col>
         </v-row>
@@ -35,7 +36,7 @@
   import GuideCard from '@/components/GuideCard.vue'
   import TravellerCard from '@/components/TravellerCard.vue'
   import { useNavStore } from '@/stores/navStore'
-  import { ref, onMounted, onUnmounted, watch } from 'vue'
+  import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
 
   const nav = useNavStore()
 
@@ -46,13 +47,34 @@
 
   const emit = defineEmits(['scroll-change'])
   const isScrolled = ref(false)
+  const publicGuides = ref([])
 
   function handleScroll() {
     isScrolled.value = window.scrollY > 20
   }
 
+  const displayItems = computed(() => {
+    if (nav.cardType === 'guide') {
+      return publicGuides.value
+    } else {
+      return [1, 2, 3, 4, 5, 6] // Dummy data for travellers
+    }
+  })
+
   watch(isScrolled, val => emit('scroll-change', val))
-  onMounted(() => window.addEventListener('scroll', handleScroll))
+  
+  onMounted(async () => {
+    window.addEventListener('scroll', handleScroll)
+    try {
+      const res = await fetch('http://localhost:3000/guides/public')
+      if (res.ok) {
+        publicGuides.value = await res.json()
+      }
+    } catch (e) {
+      console.error('Failed to fetch guides:', e)
+    }
+  })
+  
   onUnmounted(() => window.removeEventListener('scroll', handleScroll))
 </script>
 

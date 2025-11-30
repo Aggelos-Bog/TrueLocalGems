@@ -5,10 +5,11 @@
       :elevation="isHovering ? 12 : 3"
       class="guide-card rounded-xl transition-swing"
       max-width="300"
+      :to="{ name: 'GuideProfile', params: { id: guide.guide_id } }"
     >
       <!-- Profile Image -->
       <v-img
-        src="https://cdn.vuetifyjs.com/images/cards/cooking.png"
+        :src="guide.img_url || 'https://cdn.vuetifyjs.com/images/cards/cooking.png'"
         height="200"
         cover
         class="align-end"
@@ -20,11 +21,11 @@
       <div class="info-section pa-4">
         <v-row no-gutters class="align-center mb-2">
           <v-col cols="8">
-            <h3 class="text-h6 font-weight-regular">Fotis</h3>
-            <div class="text-caption text-grey-darken-3">Athens,Greece</div>
+            <h3 class="text-h6 font-weight-regular">{{ guide.name }}</h3>
+            <div class="text-caption text-grey-darken-3">{{ guide.city }}, {{ guide.country }}</div>
           </v-col>
           <v-col cols="4" class="text-right">
-            <div class="text-h6 font-weight-regular">27€/h</div>
+            <div class="text-h6 font-weight-regular">{{ guide.price_per_hour }}€/h</div>
           </v-col>
         </v-row>
 
@@ -32,12 +33,12 @@
 
         <v-row no-gutters class="align-center">
           <v-col cols="4" class="text-center">
-            <div class="text-h6 font-weight-regular">1</div>
+            <div class="text-h6 font-weight-regular">0</div>
             <div class="text-caption text-grey-darken-3">Reviews</div>
           </v-col>
           <v-col cols="8" class="text-center">
             <v-rating
-              :model-value="4"
+              :model-value="Number(guide.rating_avg)"
               color="amber-lighten-1"
               active-color="amber-lighten-1"
               half-increments
@@ -54,7 +55,21 @@
 </template>
 
 <script setup>
-// Hardcoded for now as requested
+defineProps({
+  guide: {
+    type: Object,
+    required: true,
+    default: () => ({
+      guide_id: 0,
+      name: 'Guide Name',
+      city: 'City',
+      country: 'Country',
+      price_per_hour: 0,
+      img_url: 'https://cdn.vuetifyjs.com/images/cards/cooking.png',
+      rating_avg: 0
+    })
+  }
+})
 </script>
 
 <style scoped>

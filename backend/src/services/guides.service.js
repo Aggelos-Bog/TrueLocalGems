@@ -29,6 +29,7 @@ export async function getGuide(id) {
 export async function getAllPublicGuides() {
   const result = await db.query(
     `SELECT 
+      g.guide_id,
       u.name,
       g.city,
       g.country,
