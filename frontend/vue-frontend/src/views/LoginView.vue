@@ -47,6 +47,7 @@
           class="rounded-lg"
           color="#8d0040"
           variant="flat"
+          :loading="loading"
         >
           Sign In
         </v-btn>
@@ -60,6 +61,19 @@
         </router-link>
       </p>
     </v-card>
+
+    <SuccessSnackbar
+      v-model="showSuccess"
+      message="Login Successful!"
+    />
+
+    <SuccessSnackbar
+      v-model="showError"
+      :message="errorMessage"
+      color="error"
+      icon="mdi-alert-circle"
+    />
+
   </v-container>
 </template>
 
@@ -67,6 +81,7 @@
   import { ref, computed } from "vue";
   import { useRouter } from "vue-router";
   import { useNavStore } from '@/stores/navStore'
+  import SuccessSnackbar from '@/components/SuccessSnackbar.vue'
 
   const navStore = useNavStore()
   const router = useRouter();
@@ -75,6 +90,10 @@
   const password = ref("");
   
   const showPassword = ref(false);
+  const loading = ref(false);
+  const showSuccess = ref(false);
+  const showError = ref(false);
+  const errorMessage = ref("");
 
   const rules = {
     required: v => !!v || "This field is required",
@@ -89,6 +108,9 @@
 
 const handleLogin = async () => {
   if (!valid.value) return;
+
+  loading.value = true;
+  showError.value = false;
 
   try {
     const res = await fetch("http://localhost:3000/api/auth/login", {
@@ -113,11 +135,22 @@ const handleLogin = async () => {
       // 🔥 Update Pinia
       navStore.setRole(roleString);
 
-      router.push("/");
+      showSuccess.value = true;
+      
+      // Delay redirect to show success message
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
+      
     } else {
-      alert(data.error);
+      loading.value = false;
+      errorMessage.value = data.error || "Login failed";
+      showError.value = true;
     }
   } catch (err) {
+    loading.value = false;
+    errorMessage.value = "An unexpected error occurred";
+    showError.value = true;
     console.error(err);
   }
 };

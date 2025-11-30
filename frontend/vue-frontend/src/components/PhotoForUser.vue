@@ -60,7 +60,6 @@
     >
       Αφαίρεση
     </v-btn>
-    <span v-else class="text-caption text-medium-emphasis mt-2">Πατήστε για φωτογραφία</span>
   </div>
 </template>
 

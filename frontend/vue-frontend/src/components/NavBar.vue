@@ -116,6 +116,11 @@
             
             </v-list>
         </v-navigation-drawer>
+
+    <SuccessSnackbar
+      v-model="showLogoutSuccess"
+      message="Logout Successful!"
+    />
 </template>
 
 <script setup>
@@ -124,6 +129,7 @@
   import { useNavStore } from '@/stores/navStore'
   import { storeToRefs } from 'pinia'
   import { useRouter } from "vue-router";
+  import SuccessSnackbar from '@/components/SuccessSnackbar.vue'
 
 
   // Props from parent (still keep for scroll)
@@ -139,6 +145,8 @@
   // 🏪 Grab links from Pinia store
   const navStore = useNavStore()
   const { leftLinks, rightLinks, utilityLinks } = storeToRefs(navStore)
+
+  const showLogoutSuccess = ref(false);
 
   // ✅ Flag to check if rightLinks exist
   const rightLinksFlag = computed(
@@ -159,7 +167,11 @@ function handleClick(link) {
 
   if (link.label === "Logout") {
     navStore.logout();
-    router.push("/");
+    showLogoutSuccess.value = true;
+    
+    setTimeout(() => {
+      router.push("/");
+    }, 1500);
     return;
   }
 

@@ -323,7 +323,7 @@
 
 
   const route = useRoute();
-  const guideId = route.params.id;
+  const guideId = computed(() => route.params.id);
 
   const guide = ref(null);
   const loading = ref(true);
@@ -333,7 +333,16 @@
   const editForm = ref({});
 
   const canEdit = computed(() => {
-    return Number(navStore.userId) === Number(guideId);
+    return Number(navStore.userId) === Number(guideId.value);
+  });
+
+  // Watch for route changes to reload data
+  watch(guideId, (newId) => {
+    if (newId) {
+      loadGuide();
+      // Reset edit mode if we navigate away
+      isEditing.value = false;
+    }
   });
 
   watch(() => editForm.value.country, (selectedName) => {
@@ -391,7 +400,7 @@
           : editForm.value.interests
       };
 
-      const res = await fetch(`http://localhost:3000/guides/${guideId}`, {
+      const res = await fetch(`http://localhost:3000/guides/${guideId.value}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json"
@@ -419,7 +428,7 @@
 
   async function loadGuide() {
     try {
-      const res = await fetch(`http://localhost:3000/guides/${guideId}`);
+      const res = await fetch(`http://localhost:3000/guides/${guideId.value}`);
       if (!res.ok) throw new Error("Guide not found");
 
       guide.value = await res.json();

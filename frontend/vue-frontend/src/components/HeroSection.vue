@@ -57,11 +57,10 @@
 </template>
 
 <script setup>
-import NavBar from '@/components/NavBar.vue'
 import heroImage from '@/assets/images/home-page.png'
 import { ref, onMounted } from 'vue'
 
-const destination = ref('')
+const destination = ref()
 const countries = ref([])
 
 onMounted(async () => {

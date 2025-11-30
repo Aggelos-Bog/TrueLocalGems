@@ -96,3 +96,5 @@ export async function updateGuide(id, updates) {
 
   return fullResult.rows[0];
 }
+
+

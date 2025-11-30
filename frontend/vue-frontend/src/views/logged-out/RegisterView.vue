@@ -157,6 +157,7 @@
           class="rounded-lg"
           color="#8d0040"
           variant="flat"
+          :loading="loading"
         >
           {{ buttonText }}
         </v-btn>
@@ -172,15 +173,21 @@
         </router-link>
       </p>
     </v-card>
+
+    <SuccessSnackbar
+      v-model="showSuccess"
+      message="Registration Successful! Redirecting..."
+    />
   </v-container>
 </template>
 
 
 <script setup>
-  import { ref, computed, watch, onMounted  } from "vue";
+  import { ref, computed, watch  } from "vue";
   import { useRouter } from "vue-router";
   import { useNavStore } from '@/stores/navStore';
   import { useCityStore } from "@/stores/useCityStore";  
+  import SuccessSnackbar from '@/components/SuccessSnackbar.vue'
 
   const cityOptions = ref([]);
 
@@ -201,6 +208,8 @@
   const showPassword = ref(false);
   const showPasswordConfirm  = ref(false);
   const isCityDisabled = ref(true);
+  const loading = ref(false);
+  const showSuccess = ref(false);
 
   const guide = ref({
     language: [],
@@ -237,6 +246,8 @@
     const { valid } = await form.value.validate();
     if (!valid) return;
 
+    loading.value = true;
+
     try {
       const res = await fetch("http://localhost:3000/api/auth/register", {
         method: "POST",
@@ -258,11 +269,19 @@
         const roleString = data.user.role === 1 ? "guide" : "traveller";
         navStore.setRole(roleString);
 
-        router.push("/");
+        showSuccess.value = true;
+
+        // Delay redirect
+        setTimeout(() => {
+          router.push("/");
+        }, 1500);
+
       } else {
+        loading.value = false;
         alert(data.error);
       }
     } catch (err) {
+      loading.value = false;
       console.error(err);
     }
   };

@@ -1,4 +1,7 @@
 import * as guideService from "../services/guides.service.js";
+import multer from "multer";
+import path from "path";
+import fs from "fs";
 
 export async function getGuide(req, res) {
   try {
@@ -26,56 +29,101 @@ export async function updateGuide(req, res) {
   }
 }
 
-// Multer setup
-import multer from "multer";
-import path from "path";
-import fs from "fs";
+// ------------------------------
+// MULTER SETUP FOR FILE UPLOADS
+// ------------------------------
 
+
+
+// Configure multer to store uploaded photos on disk
 const storage = multer.diskStorage({
+
+  // ---------------------------
+  // 1. Destination folder setup
+  // ---------------------------
   destination: function (req, file, cb) {
+    // Folder where images will be saved
     const dir = "Public/guideImages";
-    if (!fs.existsSync(dir)){
-        fs.mkdirSync(dir, { recursive: true });
+
+    // Check if folder exists; if not, create it
+    if (!fs.existsSync(dir)) {
+      // recursive:true → creates parent folders if necessary
+      fs.mkdirSync(dir, { recursive: true });
     }
+
+    // Tell multer to store files in this folder
     cb(null, dir);
   },
+
+  // ---------------------------
+  // 2. Filename formatting
+  // ---------------------------
   filename: function (req, file, cb) {
-    // Use guide ID + timestamp + extension
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, req.params.id + '-' + uniqueSuffix + path.extname(file.originalname));
+    // Create a unique suffix for filenames:
+    //    current timestamp + random large number
+    const uniqueSuffix =
+      Date.now() + "-" + Math.round(Math.random() * 1e9);
+
+    // File extension of the uploaded file (.jpg, .png, etc.)
+    const extension = path.extname(file.originalname);
+
+    // Final filename format:
+    //     <guideId>-<uniqueSuffix><extension>
+    // Example:
+    //     15-1712345678-918273645.png
+    const finalFileName =
+      req.params.id + "-" + uniqueSuffix + extension;
+
+    // Pass filename to multer
+    cb(null, finalFileName);
   }
 });
 
-const upload = multer({ storage: storage }).single('photo');
+// Multer middleware that accepts ONE file named "photo"
+const upload = multer({ storage: storage }).single("photo");
 
+
+// --------------------------------------
+// CONTROLLER: Handle photo upload request
+// --------------------------------------
 export const uploadPhoto = (req, res) => {
+
+  // Run the multer upload process
   upload(req, res, async function (err) {
+
+    // Handle multer-specific errors (e.g. limits)
     if (err instanceof multer.MulterError) {
-      return res.status(500).json({ error: err.message });
-    } else if (err) {
       return res.status(500).json({ error: err.message });
     }
 
+    // Handle any other upload errors
+    if (err) {
+      return res.status(500).json({ error: err.message });
+    }
+
+    // If no file was uploaded at all
     if (!req.file) {
       return res.status(400).json({ error: "No file uploaded" });
     }
 
     try {
+      // The guide ID comes from the URL: /guides/:id/photo
       const guideId = req.params.id;
-      // Construct URL (assuming server runs on localhost:3000)
-      // We store the relative path or full URL. 
-      // User said: "backend should send the path of the image to the db"
-      // And "when I need the image I should call my already existing guide route"
-      // Let's store the full URL or relative path that can be used directly in src.
-      // Since we serve /public, the URL is http://localhost:3000/public/guideImages/filename
-      
+
+      // Build the URL where the image will be publicly accessible.
+      // Since Express typically serves /public as a static folder, this URL can be used in the frontend.
       const imgUrl = `http://localhost:3000/public/guideImages/${req.file.filename}`;
 
+      // Save the image URL in database under the guide's record
       await guideService.updateGuide(guideId, { img_url: imgUrl });
 
+      // Respond to client with the URL of the newly uploaded image
       res.status(200).json({ img_url: imgUrl });
+
     } catch (dbErr) {
+      // Handle database update errors
       res.status(500).json({ error: dbErr.message });
     }
   });
 };
+
