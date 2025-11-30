@@ -50,6 +50,27 @@ export const useNavStore = defineStore('nav', () => {
     },
   }
 
+    // 🎨 UI config per role
+  const uiConfig = {
+    guest: {
+      title: "Choose a Local to guide you from Athens",
+      cardType: "guide", // shows GuideCard (default)
+    },
+    traveller: {
+      title: "Choose a Local to guide you from Athens",
+      cardType: "guide",
+    },
+    guide: {
+      title: "Travellers looking for Guides",
+      cardType: "traveller", // this will show a TravellerCard later
+    },
+  }
+
+  // 🧮 Computed title & cardType based on current role
+  const sectionTitle = computed(() => uiConfig[role.value].title)
+  const cardType = computed(() => uiConfig[role.value].cardType)
+
+
   // 📦 computed links for current role
   const leftLinks = computed(() => linkSets[role.value].left)
   const rightLinks = computed(() => linkSets[role.value].right)
@@ -96,5 +117,7 @@ export const useNavStore = defineStore('nav', () => {
     loadFromToken,
     logout,
     setRole,
+    sectionTitle,
+    cardType
   }
 })

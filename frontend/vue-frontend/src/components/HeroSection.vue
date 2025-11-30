@@ -38,7 +38,7 @@
         <!-- Right image -->
         <div>
           <v-row align="center" justify="center" max-height="300" width="500">
-            <v-col cols="8" md="8" lg="12" class="d-none d-sm-flex justify-center">
+            <v-col cols="8" md="8" lg="12" class=" d-none d-sm-flex justify-center">
               <v-img
                 :src="heroImage"
                 alt="Hero image"

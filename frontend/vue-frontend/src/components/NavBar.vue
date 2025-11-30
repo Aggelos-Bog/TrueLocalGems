@@ -125,7 +125,7 @@
 
 <script setup>
   import logo from '@/assets/images/logo-tlg.png'
-  import { ref, computed, defineEmits } from 'vue'
+  import { ref, computed } from 'vue'
   import { useNavStore } from '@/stores/navStore'
   import { storeToRefs } from 'pinia'
   import { useRouter } from "vue-router";
@@ -133,7 +133,7 @@
 
 
   // Props from parent (still keep for scroll)
-  const props = defineProps({
+  defineProps({
     isScrolled: Boolean,
   })
 
