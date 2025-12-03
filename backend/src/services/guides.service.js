@@ -26,9 +26,9 @@ export async function getGuide(id) {
   return result.rows[0] || null;
 }
 
-export async function getAllPublicGuides() {
-  const result = await db.query(
-    `SELECT 
+export async function getAllPublicGuides(currentUserId = null) {
+  let query = `
+    SELECT 
       g.guide_id,
       u.name,
       g.city,
@@ -36,10 +36,38 @@ export async function getAllPublicGuides() {
       g.price_per_hour,
       g.img_url,
       g.rating_avg
-     FROM guides g
-     JOIN users u ON u.user_id = g.guide_id
-     WHERE g.public_enable = true`
-  );
+      ${currentUserId ? ", (CASE WHEN pg.guide_id IS NOT NULL THEN true ELSE false END) as is_favorite" : ""}
+    FROM guides g
+    JOIN users u ON u.user_id = g.guide_id
+    ${currentUserId ? "LEFT JOIN preferable_guide pg ON pg.guide_id = g.guide_id AND pg.user_id = $1" : ""}
+    WHERE g.public_enable = true
+  `;
+
+  const params = currentUserId ? [currentUserId] : [];
+  const result = await db.query(query, params);
+
+  return result.rows;
+}
+
+export async function getGuidesByCountry(country, currentUserId = null) {
+  let query = `
+    SELECT 
+      g.guide_id,
+      u.name,
+      g.city,
+      g.country,
+      g.price_per_hour,
+      g.img_url,
+      g.rating_avg
+      ${currentUserId ? ", (CASE WHEN pg.guide_id IS NOT NULL THEN true ELSE false END) as is_favorite" : ""}
+    FROM guides g
+    JOIN users u ON u.user_id = g.guide_id
+    ${currentUserId ? "LEFT JOIN preferable_guide pg ON pg.guide_id = g.guide_id AND pg.user_id = $2" : ""}
+    WHERE g.public_enable = true AND g.country = $1
+  `;
+
+  const params = currentUserId ? [country, currentUserId] : [country];
+  const result = await db.query(query, params);
 
   return result.rows;
 }
@@ -116,3 +144,29 @@ export async function updateGuide(id, updates) {
 }
 
 
+
+// ----------------------------------------------------------------------
+// FAVORITES
+// ----------------------------------------------------------------------
+export async function addFavorite(userId, guideId) {
+  await db.query(
+    `INSERT INTO preferable_guide (user_id, guide_id) VALUES ($1, $2)
+     ON CONFLICT DO NOTHING`,
+    [userId, guideId]
+  );
+}
+
+export async function removeFavorite(userId, guideId) {
+  await db.query(
+    `DELETE FROM preferable_guide WHERE user_id = $1 AND guide_id = $2`,
+    [userId, guideId]
+  );
+}
+
+export async function checkFavorite(userId, guideId) {
+  const result = await db.query(
+    `SELECT 1 FROM preferable_guide WHERE user_id = $1 AND guide_id = $2`,
+    [userId, guideId]
+  );
+  return result.rows.length > 0;
+}

@@ -1,6 +1,6 @@
 <template>
 
-    <HeroSection />
+    <HeroSection @search="handleSearch" />
 
     <!-- MAIN SECTION (rest of the page) -->
     <v-main class="py-16">
@@ -53,6 +53,55 @@
     isScrolled.value = window.scrollY > 20
   }
 
+  async function handleSearch(country) {
+    if (!country) {
+      // If search cleared, reload all public guides
+      loadAllGuides();
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      const headers = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch(`http://localhost:3000/guides/search?country=${country}`, {
+        headers
+      });
+
+      if (res.ok) {
+        publicGuides.value = await res.json();
+      } else {
+        const err = await res.json();
+        console.error("Search failed:", err);
+        alert(err.error || "Search failed");
+      }
+    } catch (e) {
+      console.error("Search error:", e);
+    }
+  }
+
+  async function loadAllGuides() {
+    try {
+      const token = localStorage.getItem("token");
+      const headers = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+
+      const res = await fetch('http://localhost:3000/guides/public', {
+        headers
+      })
+      if (res.ok) {
+        publicGuides.value = await res.json()
+      }
+    } catch (e) {
+      console.error('Failed to fetch guides:', e)
+    }
+  }
+
   const displayItems = computed(() => {
     if (nav.cardType === 'guide') {
       return publicGuides.value
@@ -65,14 +114,7 @@
   
   onMounted(async () => {
     window.addEventListener('scroll', handleScroll)
-    try {
-      const res = await fetch('http://localhost:3000/guides/public')
-      if (res.ok) {
-        publicGuides.value = await res.json()
-      }
-    } catch (e) {
-      console.error('Failed to fetch guides:', e)
-    }
+    loadAllGuides();
   })
   
   onUnmounted(() => window.removeEventListener('scroll', handleScroll))

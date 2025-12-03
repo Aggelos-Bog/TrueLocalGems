@@ -14,7 +14,20 @@
         cover
         class="align-end"
       >
-        <!-- Optional: Add a gradient or overlay if needed, but the image shows a clean photo -->
+        <!-- Favorite Heart Icon -->
+        <v-btn
+          icon
+          variant="text"
+          class="position-absolute top-0 right-0 ma-2"
+          @click.prevent="toggleFavorite"
+        >
+          <v-icon
+            :color="isFavorite ? 'red' : 'grey-lighten-1'"
+            size="large"
+          >
+            {{ isFavorite ? 'mdi-heart' : 'mdi-heart' }}
+          </v-icon>
+        </v-btn>
       </v-img>
 
       <!-- Info Section -->
@@ -55,7 +68,7 @@
 </template>
 
 <script setup>
-defineProps({
+const props = defineProps({
   guide: {
     type: Object,
     required: true,
@@ -66,10 +79,57 @@ defineProps({
       country: 'Country',
       price_per_hour: 0,
       img_url: 'https://cdn.vuetifyjs.com/images/cards/cooking.png',
-      rating_avg: 0
+      rating_avg: 0,
+      is_favorite: false
     })
   }
 })
+
+import { ref, watch } from 'vue'
+
+const isFavorite = ref(props.guide.is_favorite)
+
+watch(() => props.guide.is_favorite, (val) => {
+  isFavorite.value = val
+})
+
+async function toggleFavorite(e) {
+  e.stopPropagation(); // Prevent card click
+  e.preventDefault();
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    alert("Please login to add favorites!");
+    return;
+  }
+
+  // Optimistic update
+  const previousState = isFavorite.value;
+  isFavorite.value = !isFavorite.value;
+
+  try {
+    const res = await fetch(`http://localhost:3000/guides/${props.guide.guide_id}/favorite`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+
+    if (!res.ok) {
+      throw new Error("Failed to toggle favorite");
+    }
+    
+    // Optional: Update with server response if needed
+    // const data = await res.json();
+    // isFavorite.value = data.is_favorite;
+
+  } catch (err) {
+    console.error(err);
+    // Revert on error
+    isFavorite.value = previousState;
+    alert("Failed to update favorite");
+  }
+}
 </script>
 
 <style scoped>

@@ -2,6 +2,7 @@ import * as guideService from "../services/guides.service.js";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { verifyToken } from "../utils/jwt.js";
 
 export async function getGuide(req, res) {
   try {
@@ -20,7 +21,37 @@ export async function getGuide(req, res) {
 
 export async function getAllPublicGuides(req, res) {
   try {
-    const guides = await guideService.getAllPublicGuides();
+    let currentUserId = null;
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if (token) {
+      const user = verifyToken(token);
+      if (user) currentUserId = user.id;
+    }
+
+    const guides = await guideService.getAllPublicGuides(currentUserId);
+    res.status(200).json(guides);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+
+export async function searchGuides(req, res) {
+  try {
+    const { country } = req.query;
+    if (!country) {
+      return res.status(400).json({ error: "Country parameter is required" });
+    }
+
+    let currentUserId = null;
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
+    if (token) {
+      const user = verifyToken(token);
+      if (user) currentUserId = user.id;
+    }
+
+    const guides = await guideService.getGuidesByCountry(country, currentUserId);
     res.status(200).json(guides);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -147,4 +178,27 @@ export const uploadPhoto = (req, res) => {
     }
   });
 };
+
+// --------------------------------------
+// CONTROLLER: Toggle Favorite
+// --------------------------------------
+export async function toggleFavorite(req, res) {
+  try {
+    const userId = req.user.id;
+    const guideId = req.params.id;
+
+    // Check if already favorite
+    const isFavorite = await guideService.checkFavorite(userId, guideId);
+
+    if (isFavorite) {
+      await guideService.removeFavorite(userId, guideId);
+      res.status(200).json({ is_favorite: false, message: "Removed from favorites" });
+    } else {
+      await guideService.addFavorite(userId, guideId);
+      res.status(200).json({ is_favorite: true, message: "Added to favorites" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
 

@@ -31,7 +31,7 @@
               clearable
             ></v-autocomplete>
 
-            <v-btn color="lime-darken-2" class="rounded-pill" size="large">Search</v-btn>
+            <v-btn color="lime-darken-2" class="rounded-pill" size="large" @click="onSearch">Search</v-btn>
           </div>
         </div>
 
@@ -62,6 +62,12 @@ import { ref, onMounted } from 'vue'
 
 const destination = ref()
 const countries = ref([])
+
+const emit = defineEmits(['search'])
+
+function onSearch() {
+  emit('search', destination.value)
+}
 
 onMounted(async () => {
   try {
