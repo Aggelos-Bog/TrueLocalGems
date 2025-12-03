@@ -30,6 +30,12 @@ export async function getAllPublicGuides(req, res) {
 export async function updateGuide(req, res) {
   try {
     const guideId = req.params.id;
+
+    // 🛑 Only the guide who owns this profile can update it
+    if (req.user.id != guideId) {
+      return res.status(403).json({ error: "Forbidden: You cannot update another guide." });
+    }
+
     const updated = await guideService.updateGuide(guideId, req.body);
 
     res.status(200).json(updated);
@@ -119,6 +125,12 @@ export const uploadPhoto = (req, res) => {
       // The guide ID comes from the URL: /guides/:id/photo
       const guideId = req.params.id;
 
+      
+      // 🔒 Prevent uploading for someone else's guide
+      if (req.user.id != guideId) {
+        return res.status(403).json({ error: "Forbidden: You cannot upload for another guide." });
+      }
+      
       // Build the URL where the image will be publicly accessible.
       // Since Express typically serves /public as a static folder, this URL can be used in the frontend.
       const imgUrl = `http://localhost:3000/public/guideImages/${req.file.filename}`;

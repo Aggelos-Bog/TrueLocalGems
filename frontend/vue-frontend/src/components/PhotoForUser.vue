@@ -109,6 +109,9 @@
 
                 const res = await fetch(props.uploadUrl, {
                     method: 'POST',
+                    headers: {
+                        "Authorization": `Bearer ${localStorage.getItem("token")}`
+                    },
                     body: formData
                 })
 
