@@ -7,6 +7,7 @@ const router = Router();
 
 router.get("/public", guideController.getAllPublicGuides);
 router.get("/search", guideController.searchGuides);
+router.get("/favorites", authenticateToken, guideController.getFavorites);
 router.get("/:id", guideController.getGuide);
 router.put("/:id", authenticateToken, guideController.updateGuide);
 router.post("/:id/photo",authenticateToken, guideController.uploadPhoto);

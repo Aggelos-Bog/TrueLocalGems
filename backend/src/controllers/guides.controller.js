@@ -202,3 +202,16 @@ export async function toggleFavorite(req, res) {
   }
 }
 
+// --------------------------------------
+// CONTROLLER: Get Favorites
+// --------------------------------------
+export async function getFavorites(req, res) {
+  try {
+    const userId = req.user.id;
+    const favorites = await guideService.getFavoriteGuides(userId);
+    res.status(200).json(favorites);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+}
+

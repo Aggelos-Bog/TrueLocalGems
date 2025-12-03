@@ -170,3 +170,23 @@ export async function checkFavorite(userId, guideId) {
   );
   return result.rows.length > 0;
 }
+
+export async function getFavoriteGuides(userId) {
+  const result = await db.query(
+    `SELECT 
+      g.guide_id,
+      u.name,
+      g.city,
+      g.country,
+      g.price_per_hour,
+      g.img_url,
+      g.rating_avg,
+      true as is_favorite
+     FROM guides g
+     JOIN users u ON u.user_id = g.guide_id
+     JOIN preferable_guide pg ON pg.guide_id = g.guide_id
+     WHERE pg.user_id = $1 AND g.public_enable = true`,
+    [userId]
+  );
+  return result.rows;
+}

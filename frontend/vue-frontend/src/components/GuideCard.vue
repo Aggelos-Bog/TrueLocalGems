@@ -16,14 +16,15 @@
       >
         <!-- Favorite Heart Icon -->
         <v-btn
+          v-if="nav.role === 'traveller'"
           icon
           variant="text"
           class="position-absolute top-0 right-0 ma-2"
           @click.prevent="toggleFavorite"
         >
           <v-icon
-            :color="isFavorite ? 'red' : 'grey-lighten-1'"
-            size="large"
+            :color="isFavorite ? '#E3257B' : 'grey-lighten-1'"
+            size="40"
           >
             {{ isFavorite ? 'mdi-heart' : 'mdi-heart' }}
           </v-icon>
@@ -86,7 +87,9 @@ const props = defineProps({
 })
 
 import { ref, watch } from 'vue'
+import { useNavStore } from '@/stores/navStore'
 
+const nav = useNavStore()
 const isFavorite = ref(props.guide.is_favorite)
 
 watch(() => props.guide.is_favorite, (val) => {
