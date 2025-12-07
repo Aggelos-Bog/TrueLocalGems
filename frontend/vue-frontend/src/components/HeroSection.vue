@@ -11,9 +11,9 @@
       <div class="d-flex align-center justify-space-evenly w-100 mt-8">
         <!-- Left text & search -->
         <div class="text-left mr-md-10">
-          <h1 class="text-h5 text-md-h4 font-weight-bold mb-6 secondary">
+          <h1 class="text-h5 text-md-h4 font-weight-bold mb-6 secondary font-italic text-shadow-custom">
             See the world through <br />
-            a<span class="accent font-weight-bold"> local's eyes</span>
+            a<span class="accent font-weight-bold "> local's eyes</span>
           </h1>
 
           <v-spacer class=""></v-spacer>
@@ -31,7 +31,7 @@
               clearable
             ></v-autocomplete>
 
-            <v-btn color="lime-darken-2" class="rounded-pill" size="large" @click="onSearch">Search</v-btn>
+            <v-btn color="lime-darken-2" class="rounded-pill" size="large" @click="onSearch" style="text-transform: none !important;">Search</v-btn>
           </div>
         </div>
 
@@ -102,5 +102,9 @@ onMounted(async () => {
   .hero-height {
     display: none;
   }
+}
+
+.text-shadow-custom {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
 }
 </style>

@@ -3,7 +3,19 @@
 * {
   margin: 0;
   padding: 0;
-  font-family: 'Poppins', sans-serif !important;
+}
+
+/* Body Text - Work Sans */
+body, .v-application {
+  font-family: 'Work Sans', sans-serif !important;
+}
+
+/* Headings & Navbar - Lora */
+h1, h2, h3, h4, h5, h6,
+.text-h1, .text-h2, .text-h3, .text-h4, .text-h5, .text-h6,
+.v-app-bar,
+.v-btn {
+  font-family: 'Lora', serif !important;
 }
 
 .primary {

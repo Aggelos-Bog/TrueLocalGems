@@ -35,7 +35,8 @@ export async function getAllPublicGuides(currentUserId = null) {
       g.country,
       g.price_per_hour,
       g.img_url,
-      g.rating_avg
+      g.rating_avg,
+      g.interests
       ${currentUserId ? ", (CASE WHEN pg.guide_id IS NOT NULL THEN true ELSE false END) as is_favorite" : ""}
     FROM guides g
     JOIN users u ON u.user_id = g.guide_id
@@ -58,7 +59,8 @@ export async function getGuidesByCountry(country, currentUserId = null) {
       g.country,
       g.price_per_hour,
       g.img_url,
-      g.rating_avg
+      g.rating_avg,
+      g.interests
       ${currentUserId ? ", (CASE WHEN pg.guide_id IS NOT NULL THEN true ELSE false END) as is_favorite" : ""}
     FROM guides g
     JOIN users u ON u.user_id = g.guide_id
@@ -181,6 +183,7 @@ export async function getFavoriteGuides(userId) {
       g.price_per_hour,
       g.img_url,
       g.rating_avg,
+      g.interests,
       true as is_favorite
      FROM guides g
      JOIN users u ON u.user_id = g.guide_id

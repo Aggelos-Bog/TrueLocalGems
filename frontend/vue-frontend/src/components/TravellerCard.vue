@@ -3,7 +3,7 @@
     <v-card
       v-bind="props"
       :elevation="isHovering ? 12 : 3"
-      class="traveller-card rounded-xl transition-swing"
+      class="traveller-card rounded-xl transition-swing mx-auto"
       max-width="300"
     >
       <!-- Profile Image -->

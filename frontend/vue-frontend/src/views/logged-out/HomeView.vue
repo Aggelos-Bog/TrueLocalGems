@@ -6,8 +6,7 @@
     <v-main class="py-16">
       
       <v-container>
-        <h2 class="text-h5 text-md-h4 font-weight-bold mb-12 secondary text-left">
-          {{ nav.sectionTitle }}
+        <h2 class="text-h5 text-md-h4 font-weight-bold mb-12 secondary text-left text-shadow-custom" v-html="nav.sectionTitle">
         </h2>
 
         <v-row>
@@ -122,5 +121,9 @@
 
 
 <style scoped>
+
+.text-shadow-custom {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.25);
+}
 
 </style>

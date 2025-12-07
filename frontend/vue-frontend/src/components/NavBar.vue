@@ -78,7 +78,7 @@
   </v-app-bar>
           <v-navigation-drawer v-model="drawer" app temporary location="right" color="#ffe4cc">
             <v-list class="d-flex flex-column ga-2" >
-            <v-list-item v-for="(link, i) in leftLinks" class="nav-btn">
+            <v-list-item v-for="(link, i) in leftLinks" :key="'left-drawer-' + i" class="nav-btn">
               <v-btn
                 :key="'left-' + i"
                 :to="link.to"
@@ -90,7 +90,7 @@
               </v-btn>
             </v-list-item>
             
-            <v-list-item  v-for="(link, i) in rightLinks" class="nav-btn">
+            <v-list-item  v-for="(link, i) in rightLinks" :key="'right-drawer-' + i" class="nav-btn">
               <v-btn
                 :key="'right-' + i"
                 :to="link.to"
@@ -102,7 +102,7 @@
               </v-btn>
             </v-list-item>
             
-            <v-list-item  v-for="(link, i) in utilityLinks" class="nav-btn">
+            <v-list-item  v-for="(link, i) in utilityLinks" :key="'util-drawer-' + i" class="nav-btn">
              <v-btn
               :key="'util-' + i"
               @click="handleClick(link)"
@@ -187,12 +187,13 @@ function handleClick(link) {
 
   .nav-btn {
     transition: transform 0.25s ease, opacity 0.25s ease;
+    font-size: 1.1rem !important;
   }
 
-.nav-btn:hover {
-  transform: translateY(-3px);
-  opacity: 0.85;
-}
+  .nav-btn:hover {
+    transform: translateY(-3px);
+    opacity: 0.85;
+  }
 
 
 </style>
