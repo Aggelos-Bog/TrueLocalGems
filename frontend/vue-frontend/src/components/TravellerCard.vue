@@ -19,8 +19,10 @@
       <div class="info-section pa-4">
         <v-row no-gutters class="align-center mb-2">
           <v-col cols="12">
-            <h3 class="text-h6 font-weight-regular traveller-name">John Doe</h3>
-            <div class="text-caption text-grey-darken-3 traveller-subtitle">Looking for a guide in Athens</div>
+            <h3 class="text-h6 font-weight-regular traveller-name">{{ request.title }}</h3>
+            <div class="text-caption text-grey-darken-3 traveller-subtitle">
+                 Looking for a guide in {{ request.city }}, {{ request.country }}
+            </div>
           </v-col>
         </v-row>
 
@@ -29,7 +31,9 @@
         <!-- Dates Section -->
         <div class="d-flex align-center mb-3">
           <v-icon size="small" class="mr-2">mdi-calendar-range</v-icon>
-          <div class="text-body-2 font-weight-medium">Oct 15 - Oct 20</div>
+          <div class="text-body-2 font-weight-medium">
+            {{ formatDate(request.date_from) }} - {{ formatDate(request.date_to) }}
+          </div>
         </div>
 
         <!-- Interests Section -->
@@ -41,7 +45,7 @@
           
           <div class="d-flex flex-wrap pl-6">
             <v-chip
-              v-for="(item, i) in interests"
+              v-for="(item, i) in interestsList"
               :key="i"
               density="compact"
               color="primary"
@@ -59,13 +63,28 @@
 </template>
 
 <script setup>
-// Hardcoded for now
-const interests = [
-  "Art",
-  "History",
-  "Food",
-  "Music",
-]
+import { computed } from 'vue';
+
+const props = defineProps({
+    request: {
+        type: Object,
+        required: true
+    }
+});
+
+const interestsList = computed(() => {
+    if (!props.request.interests) return [];
+    // If it's already an array, return it. If string, split it.
+    // Based on previous service code, we sent a string join.
+    if (Array.isArray(props.request.interests)) return props.request.interests;
+    return props.request.interests.split(',').map(s => s.trim());
+});
+
+function formatDate(dateString) {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
 </script>
 
 <style scoped>

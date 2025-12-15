@@ -21,7 +21,7 @@
             <component
               :is="cards[nav.cardType]"
               class="mx-auto"
-              v-bind="nav.cardType === 'guide' ? { guide: item } : {}"
+              v-bind="nav.cardType === 'guide' ? { guide: item } : { request: item }"
             />
           </v-col>
         </v-row>
@@ -47,6 +47,7 @@
   const emit = defineEmits(['scroll-change'])
   const isScrolled = ref(false)
   const publicGuides = ref([])
+  const requests = ref([])
 
   function handleScroll() {
     isScrolled.value = window.scrollY > 20
@@ -101,11 +102,29 @@
     }
   }
 
+  async function loadRequests() {
+    try {
+      const token = localStorage.getItem("token");
+      const headers = {};
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      
+      const res = await fetch('http://localhost:3000/api/requests', { headers });
+      if (res.ok) {
+        const data = await res.json();
+        requests.value = data;
+      }
+    } catch (e) {
+      console.error('Failed to fetch requests:', e);
+    }
+  }
+
   const displayItems = computed(() => {
     if (nav.cardType === 'guide') {
       return publicGuides.value
     } else {
-      return [1, 2, 3, 4, 5, 6] // Dummy data for travellers
+      return requests.value
     }
   })
 
@@ -114,6 +133,7 @@
   onMounted(async () => {
     window.addEventListener('scroll', handleScroll)
     loadAllGuides();
+    loadRequests();
   })
   
   onUnmounted(() => window.removeEventListener('scroll', handleScroll))

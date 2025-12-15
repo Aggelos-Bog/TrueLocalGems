@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth.routes.js";
 import guideRoutes from "./routes/guides.routes.js";
+import requestRoutes from "./routes/request.routes.js";
 
 const app = express();
 
@@ -11,6 +12,7 @@ app.use("/public", express.static("Public"));
 
 // Mount routes here
 app.use("/api/auth", authRoutes);
+app.use("/api/requests", requestRoutes);
 app.use("/guides", guideRoutes);
 
 export default app;
