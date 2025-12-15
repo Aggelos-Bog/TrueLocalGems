@@ -168,10 +168,9 @@ function handleClick(link) {
   if (link.label === "Logout") {
     navStore.logout();
     showLogoutSuccess.value = true;
-    
-    setTimeout(() => {
+
       router.push("/");
-    }, 1500);
+
     return;
   }
 

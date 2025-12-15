@@ -11,9 +11,8 @@
       <div class="d-flex align-center justify-space-evenly w-100 mt-8">
         <!-- Left text & search -->
         <div class="text-left mr-md-10">
-          <h1 class="text-h5 text-md-h4 font-weight-bold mb-6 secondary font-italic text-shadow-custom">
-            See the world through <br />
-            a<span class="accent font-weight-bold "> local's eyes</span>
+          <h1 class="text-h5 text-md-h4 font-weight-bold mb-6 secondary font-italic text-shadow-custom"
+              v-html="navStore.heroTitle">
           </h1>
 
           <v-spacer class=""></v-spacer>
@@ -59,7 +58,9 @@
 <script setup>
 import heroImage from '@/assets/images/home-page.png'
 import { ref, onMounted } from 'vue'
+import { useNavStore } from '@/stores/navStore'
 
+const navStore = useNavStore()
 const destination = ref()
 const countries = ref([])
 

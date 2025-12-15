@@ -45,29 +45,33 @@ export const useNavStore = defineStore('nav', () => {
       utility: [
         { label: 'Chat', to: '/Chat' },
         { label: "Profile", action: "go-profile" },
-        { label: 'Logout', to: '/logout', outlined: true, color: 'lime-darken-2' },
+        { label: 'Logout', to: '/logout', outlined: true, color: 'error' },
       ],
     },
   }
 
-    // 🎨 UI config per role
+  // 🎨 UI config per role
   const uiConfig = {
     guest: {
       title: "Choose a <span class='accent text-h5 text-md-h4 font-weight-bold'>Local</span> to guide you from Athens",
+      heroTitle: "See the world through <br /> a<span class='accent font-weight-bold '> local's eyes</span>",
       cardType: "guide", // shows GuideCard (default)
     },
     traveller: {
       title: "Choose a <span class='accent text-h5 text-md-h4 font-weight-bold'>Local</span> to guide you from Athens",
+      heroTitle: "See the world through <br /> a<span class='accent font-weight-bold '> local's eyes</span>",
       cardType: "guide",
     },
     guide: {
       title: "Travellers looking for Guides",
+      heroTitle: "Share your <span class='accent font-weight-bold '>local world</span> <br /> with curious travellers",
       cardType: "traveller", // this will show a TravellerCard later
     },
   }
 
   // 🧮 Computed title & cardType based on current role
   const sectionTitle = computed(() => uiConfig[role.value].title)
+  const heroTitle = computed(() => uiConfig[role.value].heroTitle)
   const cardType = computed(() => uiConfig[role.value].cardType)
 
 
@@ -118,6 +122,7 @@ export const useNavStore = defineStore('nav', () => {
     logout,
     setRole,
     sectionTitle,
+    heroTitle,
     cardType
   }
 })
