@@ -41,6 +41,12 @@ const router = createRouter({
       component: RegisterView,
       meta: { forceScrolled: true }
     },
+    {
+      path: '/check-email',
+      name: 'check-email',
+      component: () => import('../views/logged-out/CheckEmailView.vue'),
+      meta: { forceScrolled: true }
+    },
   ],
 })
 

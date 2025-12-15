@@ -1,6 +1,8 @@
 import db from "../config/database.js";
 import { hashPassword, comparePassword } from "../utils/hash.js";
 import { generateToken } from "../utils/jwt.js";
+import { sendVerificationEmail } from "../utils/email.js";
+import jwt from "jsonwebtoken";
 
 export async function register({ name, email, password, role, guideDetails }) {
   // Normalize role
@@ -27,11 +29,11 @@ export async function register({ name, email, password, role, guideDetails }) {
     // Hash password
     const hashed = await hashPassword(password);
 
-    // Insert user
+    // Insert user - email_verified defaults to false in DB schema
     const userRes = await db.query(
       `INSERT INTO users (name, email, password, role)
        VALUES ($1, $2, $3, $4)
-       RETURNING user_id, name, email, role`,
+       RETURNING user_id, name, email, role, email_verified`,
       [name, email, hashed, role]
     );
 
@@ -66,12 +68,17 @@ export async function register({ name, email, password, role, guideDetails }) {
       );
     }
 
+    // Generate verification token (short lived or just payload with email)
+    // We can use the standard generateToken but maybe with a different secret or purpose if we wanted to be strict
+    // For simplicity using the same JWT helper but we verify it differently
+    const verificationToken = generateToken({ ...newUser, purpose: 'verification' });
+
+    await sendVerificationEmail(newUser.email, verificationToken);
+
     // If everything succeeded → COMMIT transaction
     await db.query("COMMIT");
 
-    const token = generateToken(newUser);
-
-    return { user: newUser, token };
+    return { message: "Registration successful. Please check your email to verify your account." };
 
   } catch (err) {
 
@@ -82,7 +89,25 @@ export async function register({ name, email, password, role, guideDetails }) {
   }
 }
 
-
+export async function verifyEmail(token) {
+  try {
+    // Verify token
+    console.log("Verifying token:", token);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    console.log("Decoded token:", decoded);
+    
+    // Update user
+    const updateResult = await db.query(
+      "UPDATE users SET email_verified = true WHERE user_id = $1 RETURNING *",
+      [decoded.id]
+    );
+    console.log("Update result:", updateResult.rows[0]);
+    
+    return true;
+  } catch (error) {
+    throw new Error("Invalid or expired verification token");
+  }
+}
 
 export async function login({ email, password }) {
   // Check if user exists
@@ -101,6 +126,10 @@ export async function login({ email, password }) {
   const match = await comparePassword(password, user.password);
   if (!match) {
     throw new Error("Invalid email or password");
+  }
+
+  if (!user.email_verified) {
+    throw new Error("Please verify your email before logging in");
   }
 
   // Remove password before sending back

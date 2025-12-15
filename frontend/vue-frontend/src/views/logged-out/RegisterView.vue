@@ -176,7 +176,7 @@
 
     <SuccessSnackbar
       v-model="showSuccess"
-      message="Registration Successful! Redirecting..."
+      message="Registration Successful! Please check your email..."
     />
   </v-container>
 </template>
@@ -185,7 +185,7 @@
 <script setup>
   import { ref, computed, watch  } from "vue";
   import { useRouter } from "vue-router";
-  import { useNavStore } from '@/stores/navStore';
+  // import { useNavStore } from '@/stores/navStore'; // Unused
   import { useCityStore } from "@/stores/useCityStore";  
   import SuccessSnackbar from '@/components/SuccessSnackbar.vue'
 
@@ -193,7 +193,7 @@
 
   const cityStore = useCityStore();
 
-  const navStore = useNavStore();
+  /* const navStore = useNavStore(); // Unused */
   const router = useRouter();
 
   const step = ref(1);
@@ -264,16 +264,17 @@
       const data = await res.json();
 
       if (res.ok) {
-        localStorage.setItem("token", data.token);
+        // No auto-login anymore. Token is not returned here.
+        // localStorage.setItem("token", data.token);
 
-        const roleString = data.user.role === 1 ? "guide" : "traveller";
-        navStore.setRole(roleString);
+        // const roleString = data.user.role === 1 ? "guide" : "traveller";
+        // navStore.setRole(roleString);
 
         showSuccess.value = true;
 
         // Delay redirect
         setTimeout(() => {
-          router.push("/");
+          router.push("/check-email");
         }, 1500);
 
       } else {
@@ -336,7 +337,7 @@
   });
   watch(
     () => guide.value.language,
-    (newVal) => {
+    () => {
       console.log("Selected languages:", guide.value.language);
       console.log("Selected languages:", guide.value.about);
     },

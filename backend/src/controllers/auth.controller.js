@@ -4,10 +4,25 @@ import * as authService from "../services/auth.service.js";
 export async function register(req, res) {
   try {
     // Call service to register user
-    const { user, token } = await authService.register(req.body);
-    res.status(201).json({ user, token });
+    const result = await authService.register(req.body);
+    res.status(201).json(result);
   } catch (err) {
     res.status(400).json({ error: err.message });
+  }
+}
+
+// Verify Email controller
+export async function verifyEmail(req, res) {
+  try {
+    const { token } = req.query;
+    if (!token) throw new Error("Token missing");
+
+    await authService.verifyEmail(token);
+    
+    // Redirect to frontend homepage after successful verification
+    res.redirect('http://localhost:5173/'); 
+  } catch (err) {
+    res.status(400).send(`<h1>Verification failed: ${err.message}</h1>`);
   }
 }
 
