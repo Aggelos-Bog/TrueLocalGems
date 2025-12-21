@@ -45,3 +45,14 @@ export async function getRequestById(req, res) {
     res.status(500).json({ error: "Failed to fetch request details" });
   }
 }
+
+export async function getMyRequests(req, res) {
+  try {
+    const userId = req.user.id;
+    const requests = await requestService.getRequestsByUserId(userId);
+    res.status(200).json(requests);
+  } catch (err) {
+    console.error("Error fetching my requests:", err);
+    res.status(500).json({ error: "Failed to fetch your requests" });
+  }
+}

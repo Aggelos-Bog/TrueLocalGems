@@ -67,3 +67,16 @@ export async function getRequestById(id) {
   const result = await db.query(query, [id]);
   return result.rows[0];
 }
+
+export async function getRequestsByUserId(userId) {
+  const query = `
+    SELECT r.*, u.name as user_name
+    FROM request r
+    JOIN user_does_request udr ON r.rfg_id = udr.request_id
+    JOIN users u ON udr.user_id = u.user_id
+    WHERE udr.user_id = $1
+    ORDER BY r.created_at DESC
+  `;
+  const result = await db.query(query, [userId]);
+  return result.rows;
+}

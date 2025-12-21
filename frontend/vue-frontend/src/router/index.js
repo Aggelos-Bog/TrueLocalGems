@@ -19,6 +19,12 @@ const router = createRouter({
       meta: { forceScrolled: true }
     },
     {
+      path: '/my-trips',
+      name: 'my-trips',
+      component: () => import('../views/MyTripsView.vue'),
+      meta: { forceScrolled: true }
+    },
+    {
       path: '/request/:id',
       name: 'request-details',
       component: () => import('../views/TripRequestDetailsView.vue'),
