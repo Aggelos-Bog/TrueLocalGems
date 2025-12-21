@@ -54,32 +54,30 @@
   }
 
   async function handleSearch(country) {
-    if (!country) {
-      // If search cleared, reload all public guides
-      loadAllGuides();
-      return;
-    }
-
-    try {
-      const token = localStorage.getItem("token");
-      const headers = {};
-      if (token) {
-        headers["Authorization"] = `Bearer ${token}`;
+    if (nav.cardType === 'guide') {
+      // User is searching for Guides
+      if (!country) {
+        loadAllGuides();
+        return;
       }
+      try {
+        const token = localStorage.getItem("token");
+        const headers = {};
+        if (token) headers["Authorization"] = `Bearer ${token}`;
 
-      const res = await fetch(`http://localhost:3000/guides/search?country=${country}`, {
-        headers
-      });
-
-      if (res.ok) {
-        publicGuides.value = await res.json();
-      } else {
-        const err = await res.json();
-        console.error("Search failed:", err);
-        alert(err.error || "Search failed");
+        const res = await fetch(`http://localhost:3000/guides/search?country=${country}`, { headers });
+        if (res.ok) {
+          publicGuides.value = await res.json();
+        } else {
+          const err = await res.json();
+          alert(err.error || "Search failed");
+        }
+      } catch (e) {
+        console.error("Search error:", e);
       }
-    } catch (e) {
-      console.error("Search error:", e);
+    } else {
+      // User is searching for Requests (because they are a Guide)
+      loadRequests(country);
     }
   }
 
@@ -102,7 +100,7 @@
     }
   }
 
-  async function loadRequests() {
+  async function loadRequests(country = '') {
     try {
       const token = localStorage.getItem("token");
       const headers = {};
@@ -110,7 +108,12 @@
         headers["Authorization"] = `Bearer ${token}`;
       }
       
-      const res = await fetch('http://localhost:3000/api/requests', { headers });
+      let url = 'http://localhost:3000/api/requests';
+      if (country) {
+        url += `?country=${country}`;
+      }
+
+      const res = await fetch(url, { headers });
       if (res.ok) {
         const data = await res.json();
         requests.value = data;

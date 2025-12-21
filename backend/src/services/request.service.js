@@ -35,15 +35,24 @@ export async function createRequest(data, userId) {
   return newRequest;
 }
 
-export async function getAllRequests() {
-  const query = `
+export async function getAllRequests(country) {
+  let query = `
     SELECT r.*, u.name as user_name
     FROM request r
     JOIN user_does_request udr ON r.rfg_id = udr.request_id
     JOIN users u ON udr.user_id = u.user_id
-    ORDER BY r.created_at DESC
   `;
-  const result = await db.query(query);
+
+  const values = [];
+
+  if (country) {
+    query += ` WHERE r.country ILIKE $1`;
+    values.push(`%${country}%`);
+  }
+
+  query += ` ORDER BY r.created_at DESC`;
+
+  const result = await db.query(query, values);
   return result.rows;
 }
 

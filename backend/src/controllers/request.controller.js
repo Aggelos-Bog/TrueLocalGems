@@ -21,7 +21,8 @@ export async function createRequest(req, res) {
 
 export async function getAllRequests(req, res) {
   try {
-    const requests = await requestService.getAllRequests();
+    const { country } = req.query;
+    const requests = await requestService.getAllRequests(country);
     res.status(200).json(requests);
   } catch (err) {
     console.error("Error fetching requests:", err);
