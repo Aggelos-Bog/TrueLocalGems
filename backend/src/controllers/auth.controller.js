@@ -36,3 +36,17 @@ export async function login(req, res) {
     res.status(400).json({ error: err.message });
   }
 }
+
+// Get Current User (Me)
+export async function getMe(req, res) {
+  try {
+    const userId = req.user.id;
+    const user = await authService.getUserById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch user details" });
+  }
+}

@@ -10,7 +10,8 @@ export async function createRequest(req, res) {
     // If the table requires a user_id, we might need to update this.
     // const userId = req.user?.id; 
 
-    const newRequest = await requestService.createRequest(requestData);
+    const userId = req.user?.id;
+    const newRequest = await requestService.createRequest(requestData, userId);
     res.status(201).json(newRequest);
   } catch (err) {
     console.error("Error creating request:", err);

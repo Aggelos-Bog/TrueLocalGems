@@ -1,36 +1,47 @@
 import db from "../config/database.js";
 
-export async function createRequest(data) {
+export async function createRequest(data, userId) {
   const { title, description, interests, city, country, date_from, date_to } = data;
 
-  // The image shows columns: title, description, interests, city, country, date_from, date_to
-  // It also shows rfg_id as PK.
-  // We'll insert these fields.
-  
-  const query = `
+  // 1. Insert Request
+  const queryRequest = `
     INSERT INTO request (title, description, interests, city, country, date_from, date_to, created_at)
     VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
     RETURNING *
   `;
   
-  const values = [
+  const valuesRequest = [
     title,
     description,
-    interests, // Assuming this is a text field, if array we might need to join it or use Array
+    interests, 
     city,
     country,
     date_from,
     date_to
   ];
 
-  const result = await db.query(query, values);
-  return result.rows[0];
+  const result = await db.query(queryRequest, valuesRequest);
+  const newRequest = result.rows[0];
+
+  // 2. Link User to Request (if userId provided)
+  if (userId && newRequest.rfg_id) {
+    const queryLink = `
+      INSERT INTO user_does_request (user_id, request_id, created_at)
+      VALUES ($1, $2, NOW())
+    `;
+    await db.query(queryLink, [userId, newRequest.rfg_id]);
+  }
+
+  return newRequest;
 }
 
 export async function getAllRequests() {
   const query = `
-    SELECT * FROM request 
-    ORDER BY created_at DESC
+    SELECT r.*, u.name as user_name
+    FROM request r
+    JOIN user_does_request udr ON r.rfg_id = udr.request_id
+    JOIN users u ON udr.user_id = u.user_id
+    ORDER BY r.created_at DESC
   `;
   const result = await db.query(query);
   return result.rows;

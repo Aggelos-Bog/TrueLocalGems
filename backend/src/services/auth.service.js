@@ -140,3 +140,11 @@ export async function login({ email, password }) {
 
   return { user, token };
 }
+
+export async function getUserById(userId) {
+  const result = await db.query(
+    "SELECT user_id, name, email, role, email_verified, created_at FROM users WHERE user_id = $1",
+    [userId]
+  );
+  return result.rows[0];
+}

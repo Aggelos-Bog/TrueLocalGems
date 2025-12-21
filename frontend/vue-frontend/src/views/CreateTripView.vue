@@ -2,17 +2,17 @@
   <!-- Spacer for app bar -->
   <div style="height: 80px;"></div>
 
-  <v-container fluid style="width: 80%; margin-top: 20px;">
+  <v-container fluid :style="{ width: mobile ? '95%' : '80%', marginTop: '20px' }">
     
     <v-row justify="center">
       <v-col cols="12" md="10" lg="8">
         
         <v-card elevation="4" rounded="xl" class="pa-8 card-hover">
           
-          <div class="text-h5 font-weight-bold mb-6 text-center">Create a Trip Request</div>
+          <div class="text-h5 font-weight-bold mb-6 text-center secondary font-italic text-shadow-custom"><span class="font-weight-bold accent"> Trip</span> Request for {{ form.travellerName }}</div>
 
           <v-form @submit.prevent="submitRequest" v-model="valid">
-            
+
             <!-- Title -->
             <div class="mb-4">
               <v-text-field
@@ -110,10 +110,11 @@
             <div class="d-flex justify-center">
               <v-btn
                 type="submit"
-                color="primary"
+                color="lime-darken-2"
                 size="large"
                 rounded="pill"
                 min-width="200"
+                style="text-transform: none !important;"
                 :loading="loading"
               >
                 Create Request
@@ -144,6 +145,9 @@
 import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCityStore } from "@/stores/useCityStore";
+import { useDisplay } from 'vuetify';
+
+const { mobile } = useDisplay();
 
 const router = useRouter();
 const cityStore = useCityStore();
@@ -157,6 +161,7 @@ const cityOptions = ref([]);
 const isCityDisabled = ref(true);
 
 const form = ref({
+  travellerName: '', // New field
   title: '',
   country: null,
   city: null,
@@ -219,7 +224,7 @@ async function submitRequest() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // "Authorization": `Bearer ${localStorage.getItem("token")}` // Uncomment if auth required
+        "Authorization": `Bearer ${localStorage.getItem("token")}`
       },
       body: JSON.stringify(payload)
     });
@@ -239,8 +244,26 @@ async function submitRequest() {
   }
 }
 
+// Function to load current user
+const loadUser = async () => {
+    try {
+        const res = await fetch('http://localhost:3000/api/auth/me', {
+            headers: {
+                "Authorization": `Bearer ${localStorage.getItem("token")}`
+            }
+        });
+        if (res.ok) {
+            const userData = await res.json();
+            form.value.travellerName = userData.name;
+        }
+    } catch (err) {
+        console.error("Failed to load user:", err);
+    }
+};
+
 onMounted(() => {
     loadCountries();
+    loadUser(); // Load user on mount
 });
 
 </script>

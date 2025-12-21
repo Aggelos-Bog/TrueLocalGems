@@ -16,6 +16,7 @@ const router = createRouter({
       path: '/create-trip',
       name: 'create-trip',
       component: () => import('../views/CreateTripView.vue'),
+      meta: { forceScrolled: true }
     },
     {
       path: '/login',
