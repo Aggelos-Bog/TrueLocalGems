@@ -6,6 +6,8 @@
       class="traveller-card rounded-xl transition-swing mx-auto d-flex flex-column"
       max-width="300"
       height="450"
+      @click="openRequest"
+      style="cursor: pointer"
     >
       <!-- Gradient Header -->
       <div class="card-header d-flex align-center px-4">
@@ -135,6 +137,15 @@ const chipColors = [
 
 function getChipColor(index) {
     return chipColors[index % chipColors.length];
+}
+
+import { useRouter } from 'vue-router';
+const router = useRouter();
+
+function openRequest() {
+    if (props.request && props.request.rfg_id) {
+        router.push(`/request/${props.request.rfg_id}`);
+    }
 }
 </script>
 

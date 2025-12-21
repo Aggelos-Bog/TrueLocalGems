@@ -28,3 +28,19 @@ export async function getAllRequests(req, res) {
     res.status(500).json({ error: "Failed to fetch requests" });
   }
 }
+
+export async function getRequestById(req, res) {
+  try {
+    const { id } = req.params;
+    const request = await requestService.getRequestById(id);
+    
+    if (!request) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+    
+    res.status(200).json(request);
+  } catch (err) {
+    console.error("Error fetching request:", err);
+    res.status(500).json({ error: "Failed to fetch request details" });
+  }
+}
