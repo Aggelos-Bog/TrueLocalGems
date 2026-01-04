@@ -1,5 +1,5 @@
 import express from "express";
-import { createRequest, getAllRequests, getRequestById, getMyRequests } from "../controllers/request.controller.js";
+import { createRequest, getAllRequests, getRequestById, getMyRequests, updateRequest } from "../controllers/request.controller.js";
 import { authenticateToken } from "../middleware/auth.middleware.js";
 
 const router = express.Router();
@@ -10,5 +10,6 @@ router.post("/", authenticateToken, createRequest);
 router.get("/", authenticateToken, getAllRequests);
 router.get("/my-requests", authenticateToken, getMyRequests);
 router.get("/:id", authenticateToken, getRequestById);
+router.patch("/:id", authenticateToken, updateRequest);
 
 export default router;

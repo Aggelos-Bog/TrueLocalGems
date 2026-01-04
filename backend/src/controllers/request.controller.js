@@ -56,3 +56,35 @@ export async function getMyRequests(req, res) {
     res.status(500).json({ error: "Failed to fetch your requests" });
   }
 }
+
+export async function updateRequest(req, res) {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+    const userId = req.user.id;
+
+    // 1. Check if request exists
+    const existingRequest = await requestService.getRequestById(id);
+    if (!existingRequest) {
+      return res.status(404).json({ error: "Request not found" });
+    }
+
+    // 2. Check ownership
+    // Note: getRequestById returns "u.user_id" as "user_id" from the query I modified earlier.
+    // However, looking at services/request.service.js, getRequestById returns "u.user_id". 
+    // Wait, in Step 27 I modified getRequestById to return `u.user_id`.
+    // The query is: `SELECT r.*, u.name as user_name, u.user_id ...`
+    // So `existingRequest.user_id` should be the creator's ID.
+    
+    if (existingRequest.user_id != userId) {
+      return res.status(403).json({ error: "Unauthorized: You are not the creator of this request" });
+    }
+
+    // 3. Perform patch
+    const updatedRequest = await requestService.patchRequest(id, updates);
+    res.status(200).json(updatedRequest);
+  } catch (err) {
+    console.error("Error updating request:", err);
+    res.status(500).json({ error: "Failed to update request" });
+  }
+}

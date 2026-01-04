@@ -58,7 +58,7 @@ export async function getAllRequests(country) {
 
 export async function getRequestById(id) {
   const query = `
-    SELECT r.*, u.name as user_name
+    SELECT r.*, u.name as user_name, u.user_id
     FROM request r
     JOIN user_does_request udr ON r.rfg_id = udr.request_id
     JOIN users u ON udr.user_id = u.user_id
@@ -79,4 +79,28 @@ export async function getRequestsByUserId(userId) {
   `;
   const result = await db.query(query, [userId]);
   return result.rows;
+}
+
+export async function patchRequest(id, fields) {
+  const allowedColumns = ['title', 'description', 'interests', 'city', 'country', 'date_from', 'date_to'];
+  const updates = Object.keys(fields).filter(key => allowedColumns.includes(key));
+
+  if (updates.length === 0) {
+    throw new Error("No valid fields to update");
+  }
+
+  // Construct dynamic query
+  const setClause = updates.map((key, index) => `${key} = $${index + 1}`).join(", ");
+  const values = updates.map(key => fields[key]);
+  values.push(id); // rfg_id is the last parameter
+
+  const query = `
+    UPDATE request
+    SET ${setClause}
+    WHERE rfg_id = $${updates.length + 1}
+    RETURNING *
+  `;
+
+  const result = await db.query(query, values);
+  return result.rows[0];
 }
