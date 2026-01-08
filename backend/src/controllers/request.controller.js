@@ -22,7 +22,14 @@ export async function createRequest(req, res) {
 export async function getAllRequests(req, res) {
   try {
     const { country } = req.query;
-    const requests = await requestService.getAllRequests(country);
+    let userId = null;
+    
+    // Check if user is authenticated (req.user is populated by authenticateToken)
+    if (req.user) {
+      userId = req.user.id;
+    }
+
+    const requests = await requestService.getAllRequests(country, userId);
     res.status(200).json(requests);
   } catch (err) {
     console.error("Error fetching requests:", err);

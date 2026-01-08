@@ -10,7 +10,20 @@
       style="cursor: pointer"
     >
       <!-- Gradient Header -->
-      <div class="card-header d-flex align-center px-4">
+      <div class="card-header d-flex align-center px-4 position-relative">
+        <!-- Bookmark Icon (Top Right) -->
+        <v-btn
+          v-if="isGuide"
+          icon
+          variant="text"
+          class="position-absolute top-0 right-0 mt-2 mr-2 z-index-10"
+          @click.stop="toggleBookmark"
+        >
+          <v-icon :color="isBookmarked ? 'primary' : 'grey-lighten-1'" size="large">
+            {{ isBookmarked ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
+          </v-icon>
+        </v-btn>
+
         <!-- Avatar with Initials (Glassmorphism) -->
         <div class="avatar-glass d-flex align-center justify-center mr-4">
           <span class="text-h5 font-weight-bold text-white">{{ locationIso }}</span>
@@ -140,7 +153,46 @@ function getChipColor(index) {
 }
 
 import { useRouter } from 'vue-router';
+import { ref, onMounted } from 'vue';
+import { useNavStore } from '@/stores/navStore'; // Assuming this holds role info
+import axios from 'axios';
+
 const router = useRouter();
+const navStore = useNavStore();
+
+const isGuide = computed(() => navStore.role === 'guide');
+const isBookmarked = ref(false);
+
+// Initialize bookmark status (if passed in props or needing fetch)
+// For now, defaulting to false. Ideally, this should come from props.request.is_bookmarked
+// if the backend returned it.
+onMounted(() => {
+    if (props.request.is_bookmarked) {
+        isBookmarked.value = true;
+    }
+});
+
+async function toggleBookmark() {
+    if (!props.request.rfg_id) return;
+    
+    // Optimistic UI update
+    const previousState = isBookmarked.value;
+    isBookmarked.value = !isBookmarked.value;
+
+    try {
+        const token = localStorage.getItem('token');
+        await axios.post(
+            `http://localhost:3000/api/guide-bookmarks/${props.request.rfg_id}`, 
+            {}, 
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        // Success
+    } catch (error) {
+        console.error("Failed to toggle bookmark", error);
+        // Revert on failure
+        isBookmarked.value = previousState;
+    }
+}
 
 function openRequest() {
     if (props.request && props.request.rfg_id) {
@@ -205,5 +257,9 @@ function openRequest() {
 .chip-bordered:hover {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.30) !important;
   transform: translateY(-2px);
+}
+
+.z-index-10 {
+  z-index: 10;
 }
 </style>

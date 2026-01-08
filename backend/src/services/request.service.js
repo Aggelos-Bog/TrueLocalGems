@@ -35,18 +35,30 @@ export async function createRequest(data, userId) {
   return newRequest;
 }
 
-export async function getAllRequests(country) {
+export async function getAllRequests(country, currentUserId = null) {
   let query = `
-    SELECT r.*, u.name as user_name
+    SELECT 
+      r.*, 
+      u.name as user_name
+      ${currentUserId ? ", (CASE WHEN gbr.request_id IS NOT NULL THEN true ELSE false END) as is_bookmarked" : ""}
     FROM request r
     JOIN user_does_request udr ON r.rfg_id = udr.request_id
     JOIN users u ON udr.user_id = u.user_id
+    ${currentUserId ? "LEFT JOIN guide_bookmarks_request gbr ON gbr.request_id = r.rfg_id AND gbr.guide_id = $1" : ""}
   `;
 
+  // Start building values array
+  // If we have currentUserId, it's $1.
   const values = [];
+  if (currentUserId) {
+    values.push(currentUserId);
+  }
 
+  // Handle country filter
   if (country) {
-    query += ` WHERE r.country ILIKE $1`;
+    // If currentUserId is present, country is $2, else $1.
+    const paramIndex = currentUserId ? 2 : 1;
+    query += ` WHERE r.country ILIKE $${paramIndex}`;
     values.push(`%${country}%`);
   }
 
