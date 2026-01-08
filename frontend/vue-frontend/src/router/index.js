@@ -60,6 +60,12 @@ const router = createRouter({
       component: () => import('../views/logged-out/CheckEmailView.vue'),
       meta: { forceScrolled: true }
     },
+    {
+      path: '/bookmarks',
+      name: 'bookmarks',
+      component: () => import('../views/BookmarkedRequestsView.vue'),
+      meta: { forceScrolled: true }
+    },
   ],
 })
 

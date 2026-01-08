@@ -20,6 +20,7 @@
           :to="link.to"
           :variant="link.variant || 'text'"
           :color="link.color || 'black'"
+          :prepend-icon="link.icon"
           class="mx-2 nav-btn"
         >
           {{ link.label }}
@@ -48,6 +49,7 @@
           :to="link.to"
           :variant="link.variant || 'text'"
           :color="link.color || 'black'"
+          :prepend-icon="link.icon"
           class="mx-2 nav-btn"
         >
           {{ link.label }}
@@ -69,6 +71,7 @@
         @click="handleClick(link)"
         :variant="link.outlined ? 'outlined' : link.variant || 'text'"
         :color="link.color || 'black'"
+        :prepend-icon="link.icon"
         class="mx-2 nav-btn"
       >
         {{ link.label }}
@@ -78,12 +81,13 @@
   </v-app-bar>
           <v-navigation-drawer v-model="drawer" app temporary location="right" color="#ffe4cc">
             <v-list class="d-flex flex-column ga-2" >
-            <v-list-item v-for="(link, i) in leftLinks" :key="'left-drawer-' + i" class="nav-btn">
+             <v-list-item v-for="(link, i) in leftLinks" :key="'left-drawer-' + i" class="nav-btn">
               <v-btn
                 :key="'left-' + i"
                 :to="link.to"
                 :variant="link.variant || 'text'"
                 :color="link.color || 'black'"
+                :prepend-icon="link.icon"
                 class="mx-2"
               >
                 {{ link.label }}
@@ -96,6 +100,7 @@
                 :to="link.to"
                 :variant="link.variant || 'text'"
                 :color="link.color || 'black'"
+                :prepend-icon="link.icon"
                 class="mx-2"
               >
                 {{ link.label }}
@@ -108,6 +113,7 @@
               @click="handleClick(link)"
               :variant="link.outlined ? 'outlined' : link.variant || 'text'"
               :color="link.color || 'black'"
+              :prepend-icon="link.icon"
               class="mx-2"
             >
               {{ link.label }}

@@ -19,7 +19,7 @@
           class="position-absolute top-0 right-0 mt-2 mr-2 z-index-10"
           @click.stop="toggleBookmark"
         >
-          <v-icon :color="isBookmarked ? 'primary' : 'grey-lighten-1'" size="large">
+          <v-icon :color="isBookmarked ? 'primary' : 'grey-lighten-3'" size="x-large">
             {{ isBookmarked ? 'mdi-bookmark' : 'mdi-bookmark-outline' }}
           </v-icon>
         </v-btn>

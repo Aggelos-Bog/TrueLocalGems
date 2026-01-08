@@ -30,10 +30,16 @@ export async function toggleBookmark(guideId, requestId) {
 
 export async function getBookmarks(guideId) {
   const query = `
-    SELECT request_id, created_at 
-    FROM guide_bookmarks_request 
-    WHERE guide_id = $1
-    ORDER BY created_at DESC
+    SELECT 
+      r.*, 
+      u.name as user_name,
+      true as is_bookmarked
+    FROM guide_bookmarks_request gbr
+    JOIN request r ON r.rfg_id = gbr.request_id
+    JOIN user_does_request udr ON udr.request_id = r.rfg_id
+    JOIN users u ON u.user_id = udr.user_id
+    WHERE gbr.guide_id = $1
+    ORDER BY gbr.created_at DESC
   `;
   const result = await db.query(query, [guideId]);
   return result.rows;

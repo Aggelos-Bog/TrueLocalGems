@@ -15,37 +15,37 @@ export const useNavStore = defineStore('nav', () => {
       left: [],
       right: [],
       utility: [
-        { label: 'Register', to: '/register' },
-        { label: 'Login', to: '/login', color: 'lime-darken-2', outlined: true },
+        { label: 'Register', to: '/register', icon: 'mdi-account-plus' },
+        { label: 'Login', to: '/login', color: 'lime-darken-2', outlined: true, icon: 'mdi-login' },
       ],
     },
 
     traveller: {
       left: [
-        { label: 'Create a Trip', to: '/create-trip' },
-        { label: 'My Trips', to: '/my-trips' },
+        { label: 'Create a Trip', to: '/create-trip', icon: 'mdi-briefcase-plus' },
+        { label: 'My Trips', to: '/my-trips', icon: 'mdi-briefcase-account' },
       ],
       right: [
-        { label: 'My Trips', to: '/MyTrips' },
-        { label: 'Favorite Guides', to: '/favorites' },
+        { label: 'My Trips', to: '/MyTrips', icon: 'mdi-map-marker-path' },
+        { label: 'Favorite Guides', to: '/favorites', icon: 'mdi-heart' },
       ],
       utility: [
-        { label: 'Chat', to: '/chat' },
-        { label: 'Logout', outlined: true, color: 'lime-darken-2' },
+        { label: 'Chat', to: '/chat', icon: 'mdi-chat' },
+        { label: 'Logout', outlined: true, color: 'lime-darken-2', icon: 'mdi-logout' },
       ],
     },
 
     guide: {
       left: [
-        { label: 'Book Mark', to: '/guide/bookings' },
+        { label: 'Bookmarks', to: '/bookmarks', icon: 'mdi-bookmark-multiple' },
       ],
       right: [
-        { label: 'My Tours', to: '/guide/tours' },
+        { label: 'My Tours', to: '/guide/tours', icon: 'mdi-map-plus' },
       ],
       utility: [
-        { label: 'Chat', to: '/Chat' },
-        { label: "Profile", action: "go-profile" },
-        { label: 'Logout', to: '/logout', outlined: true, color: 'error' },
+        { label: 'Chat', to: '/Chat', icon: 'mdi-chat' },
+        { label: 'Profile', action: 'go-profile', icon: 'mdi-account-circle', variant: 'text', color: 'black' },
+        { label: 'Logout', to: '/logout', outlined: true, color: 'error', icon: 'mdi-logout' },
       ],
     },
   }
