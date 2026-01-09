@@ -66,6 +66,12 @@ const router = createRouter({
       component: () => import('../views/BookmarkedRequestsView.vue'),
       meta: { forceScrolled: true }
     },
+    {
+      path: '/chat',
+      name: 'chat',
+      component: () => import('../views/LiveMessageView.vue'),
+      meta: { forceScrolled: true }
+    },
   ],
 })
 

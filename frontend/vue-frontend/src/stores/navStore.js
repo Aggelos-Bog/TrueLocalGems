@@ -43,7 +43,7 @@ export const useNavStore = defineStore('nav', () => {
         { label: 'My Tours', to: '/guide/tours', icon: 'mdi-map-plus' },
       ],
       utility: [
-        { label: 'Chat', to: '/Chat', icon: 'mdi-chat' },
+        { label: 'Chat', to: '/chat', icon: 'mdi-chat' },
         { label: 'Profile', action: 'go-profile', icon: 'mdi-account-circle', variant: 'text', color: 'black' },
         { label: 'Logout', to: '/logout', outlined: true, color: 'error', icon: 'mdi-logout' },
       ],
