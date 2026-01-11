@@ -145,6 +145,20 @@
                 Back
               </v-btn>
 
+              <!-- Send Message Button (for guides only) -->
+              <v-btn
+                v-if="isGuide && !isCreator"
+                color="primary"
+                size="large"
+                rounded="pill"
+                min-width="200"
+                style="text-transform: none !important;"
+                prepend-icon="mdi-message"
+                @click="startChat"
+              >
+                Send Message
+              </v-btn>
+
               <!-- Submit Button -->
               <v-btn
                 v-if="isCreator && isEditing"
@@ -198,6 +212,7 @@ const request = ref({
 
 const isCreator = ref(false);
 const isEditing = ref(false);
+const isGuide = ref(false);
 
 const loadCountries = async () => {
     try {
@@ -334,9 +349,25 @@ const updateRequest = async () => {
     }
 };
 
+const startChat = () => {
+    const requestId = route.params.id;
+    router.push(`/chat?request_id=${requestId}`);
+};
+
 onMounted(() => {
     loadCountries();
     loadRequest();
+    
+    // Check if user is a guide
+    const token = localStorage.getItem("token");
+    if (token) {
+        try {
+            const decoded = jwtDecode(token);
+            isGuide.value = decoded.role === 1;
+        } catch (e) {
+            console.error("Error decoding token:", e);
+        }
+    }
 });
 
 </script>

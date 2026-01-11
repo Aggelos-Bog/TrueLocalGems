@@ -20,7 +20,9 @@
     "jwt-decode": "^4.0.0",
     "multer": "^2.0.2",
     "nodemailer": "^7.0.11",
-    "pg": "^8.16.3"
+    "pg": "^8.16.3",
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.11"

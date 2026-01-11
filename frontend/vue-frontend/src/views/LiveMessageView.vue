@@ -7,42 +7,54 @@
         cols="12" 
         md="3" 
         class="border-e d-flex flex-column"
-        v-show="!mobile || !selectedContact"
+        v-show="!mobile || !selectedChat"
       >
-        <!-- Sidebar Header (optional, maybe search?) -->
+        <!-- Sidebar Header -->
         <v-toolbar flat color="white" class="border-b">
            <v-toolbar-title class="text-h6 font-weight-bold pl-4">Messages</v-toolbar-title>
         </v-toolbar>
 
-        <v-list lines="two" class="flex-grow-1 overflow-y-auto pa-0">
+        <v-list v-if="!loadingChats && chats.length > 0" lines="two" class="flex-grow-1 overflow-y-auto pa-0">
           <v-list-item
-            v-for="contact in contacts"
-            :key="contact.id"
-            :value="contact"
-            :active="selectedContact?.id === contact.id"
-            active-color="primary"
+            v-for="chat in chats"
+            :key="chat.request_id + '-' + (chat.guide_id || chat.traveller_id)"
+            :value="chat"
+            :active="selectedChat?.request_id === chat.request_id && (selectedChat?.guide_id === chat.guide_id || selectedChat?.traveller_id === chat.traveller_id)"
+            active-color="blue-grey-lighten-3"
             class="py-3 border-b"
-            @click="selectContact(contact)"
+            @click="selectChat(chat)"
           >
             <template v-slot:prepend>
               <v-avatar size="48" color="grey-lighten-2">
-                <v-img v-if="contact.avatar" :src="contact.avatar" cover></v-img>
-                <span v-else class="text-h6">{{ contact.name.charAt(0) }}</span>
+                <v-img v-if="chat.guide_avatar" :src="chat.guide_avatar" cover></v-img>
+                <span v-else class="text-h6">{{ (chat.guide_name || chat.traveller_name)?.charAt(0) || '?' }}</span>
               </v-avatar>
             </template>
 
             <v-list-item-title class="font-weight-medium mb-1">
-              {{ contact.name }}
+              {{ chat.guide_name || chat.traveller_name || 'Unknown' }}
             </v-list-item-title>
             <v-list-item-subtitle class="text-truncate">
-              {{ contact.lastMessage }}
+              {{ chat.title }}
             </v-list-item-subtitle>
             
              <template v-slot:append>
-                <span class="text-caption text-grey">{{ contact.time }}</span>
+                <span class="text-caption text-grey">{{ chat.city }}</span>
             </template>
           </v-list-item>
         </v-list>
+
+        <div v-else-if="loadingChats" class="flex-grow-1 d-flex align-center justify-center">
+          <v-progress-circular indeterminate color="primary"></v-progress-circular>
+        </div>
+
+        <div v-else class="flex-grow-1 d-flex align-center justify-center text-grey">
+          <div class="text-center pa-4">
+            <v-icon size="64" class="mb-4">mdi-message-outline</v-icon>
+            <div class="text-h6">No Chats Yet</div>
+            <div class="text-body-2">Start by making an offer on a request</div>
+          </div>
+        </div>
       </v-col>
 
       <!-- Right Main Area: Chat Window -->
@@ -50,28 +62,25 @@
          cols="12" 
          md="9" 
          class="d-flex flex-column bg-grey-lighten-4"
-         v-show="!mobile || selectedContact"
+         v-show="!mobile || selectedChat"
          style="height: 100%;"
       >
         
         <!-- Chat Header -->
         <v-toolbar flat color="white" class="border-b px-2" height="72">
-          <template v-if="selectedContact">
-            <v-btn icon class="d-md-none mr-2" @click="selectedContact = null">
+          <template v-if="selectedChat">
+            <v-btn icon class="d-md-none mr-2" @click="selectedChat = null">
                <v-icon>mdi-arrow-left</v-icon>
             </v-btn>
             <v-avatar size="40" class="mr-3" color="grey-lighten-2">
-               <v-img v-if="selectedContact.avatar" :src="selectedContact.avatar" cover></v-img>
-               <span v-else>{{ selectedContact.name.charAt(0) }}</span>
+               <v-img v-if="selectedChat.counterparty_avatar" :src="selectedChat.counterparty_avatar" cover></v-img>
+               <span v-else>{{ selectedChat.counterparty_name?.charAt(0) || '?' }}</span>
             </v-avatar>
             <div class="d-flex flex-column">
-              <span class="text-subtitle-1 font-weight-bold">{{ selectedContact.name }}</span>
-              <span class="text-caption text-grey">Online</span>
+              <span class="text-subtitle-1 font-weight-bold">{{ selectedChat.counterparty_name || 'Unknown' }}</span>
+              <span class="text-caption text-grey">{{ selectedChat.title }}</span>
             </div>
             <v-spacer></v-spacer>
-            <v-btn icon color="grey-darken-1">
-              <v-icon>mdi-dots-vertical</v-icon>
-            </v-btn>
           </template>
           <template v-else>
              <div class="text-subtitle-1 text-grey pl-4">Select a conversation</div>
@@ -80,36 +89,40 @@
 
         <!-- Messages Area -->
         <div 
-          v-if="selectedContact" 
+          v-if="selectedChat" 
           class="flex-grow-1 overflow-y-auto pa-4"
           ref="messagesContainer"
         >
-          <div 
-            v-for="(msg, index) in currentMessages" 
-            :key="index"
-            class="d-flex mb-4"
-            :class="msg.isMe ? 'justify-end' : 'justify-start'"
-          >
-             <!-- Avatar for other user -->
-             <v-avatar 
-                v-if="!msg.isMe" 
-                size="32" 
-                class="mr-2 align-self-end mb-1"
-                color="grey-lighten-2"
-              >
-               <v-img v-if="selectedContact.avatar" :src="selectedContact.avatar" cover></v-img>
-                <span v-else>{{ selectedContact.name.charAt(0) }}</span>
-             </v-avatar>
+          <div v-if="loadingMessages" class="d-flex justify-center align-center" style="height: 100%;">
+            <v-progress-circular indeterminate color="primary"></v-progress-circular>
+          </div>
 
+          <div v-else>
             <div 
-              class="pa-3 rounded-lg text-body-2"
-              :class="msg.isMe ? 'bg-primary text-white rounded-br-0' : 'bg-white rounded-bl-0 elevation-1'"
-              style="max-width: 70%;"
+              v-for="(msg, index) in currentMessages" 
+              :key="index"
+              class="d-flex mb-4"
+              :class="msg.isMe ? 'justify-end' : 'justify-start'"
             >
-              {{ msg.text }}
+               <!-- Avatar for other user -->
+               <v-avatar 
+                  v-if="!msg.isMe" 
+                  size="32" 
+                  class="mr-2 align-self-end mb-1"
+                  color="grey-lighten-2"
+                >
+                 <v-img v-if="selectedChat.counterparty_avatar" :src="selectedChat.counterparty_avatar" cover></v-img>
+                  <span v-else>{{ selectedChat.counterparty_name?.charAt(0) || '?' }}</span>
+               </v-avatar>
+
+              <div 
+                class="pa-3 rounded-lg text-body-2"
+                :class="msg.isMe ? 'bg-primary text-white rounded-br-0' : 'bg-white rounded-bl-0 elevation-1'"
+                style="max-width: 70%;"
+              >
+                {{ msg.content }}
+              </div>
             </div>
-             
-             <!-- Time stamp could go here -->
           </div>
         </div>
         
@@ -123,7 +136,7 @@
         </div>
 
         <!-- Input Area -->
-        <div v-if="selectedContact" class="bg-white px-4 py-3 border-t">
+        <div v-if="selectedChat" class="bg-white px-4 py-3 border-t">
           <v-form @submit.prevent="sendMessage">
             <v-row no-gutters align="center">
               <v-col>
@@ -137,12 +150,6 @@
                   rounded="pill"
                   class="message-input"
                 >
-                  <template v-slot:prepend-inner>
-                     <!-- Emoji removed -->
-                  </template>
-                  <template v-slot:append-inner>
-                      <!-- Attachment removed -->
-                  </template>
                 </v-text-field>
               </v-col>
               <v-col cols="auto" class="pl-2">
@@ -167,133 +174,219 @@
 </template>
 
 <script setup>
-import { ref, nextTick, computed } from 'vue';
+import { ref, onMounted, onUnmounted, nextTick, computed } from 'vue';
 import { useDisplay } from 'vuetify';
+import { useRoute } from 'vue-router';
+import { useChat } from '@/composables/useChat';
 
 const { mobile } = useDisplay();
+const route = useRoute();
+const { connect, joinRoom, sendMessage: sendSocketMessage, onNewMessage, loadChatHistory, disconnect } = useChat();
 
-// --- Mock Data ---
-const mockContacts = [
-  { 
-    id: 1, 
-    name: 'Alice Johnson', 
-    avatar: 'https://i.pravatar.cc/150?u=alice', 
-    lastMessage: 'Sounds good! See you then.',
-    time: '10:30 AM'
-  },
-  { 
-    id: 2, 
-    name: 'Bob Smith', 
-    avatar: 'https://i.pravatar.cc/150?u=bob', 
-    lastMessage: 'Can you send me the details?',
-    time: 'Yesterday'
-  },
-  { 
-    id: 3, 
-    name: 'Carol White', 
-    avatar: 'https://i.pravatar.cc/150?u=carol', 
-    lastMessage: 'Thanks for the help!',
-    time: 'Yesterday'
-  },
-  {
-      id: 4,
-      name: 'David Brown',
-      avatar: null, // text avatar test
-      lastMessage: 'Are we still meeting?',
-      time: 'Mon'
+// State
+const chats = ref([]);
+const selectedChat = ref(null);
+const currentMessages = ref([]);
+const newMessage = ref('');
+const messagesContainer = ref(null);
+const loadingChats = ref(true);
+const loadingMessages = ref(false);
+
+// Get token and user info from localStorage
+const token = localStorage.getItem('token');
+let currentUserId = null;
+
+// Decode JWT to get current user ID
+if (token) {
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    currentUserId = payload.id;
+  } catch (e) {
+    console.error('Failed to decode token:', e);
   }
-];
-
-const mockMessages = {
-    1: [
-        { id: 1, text: 'Hi Alice, how are you?', isMe: true },
-        { id: 2, text: 'I am doing great! Thanks for asking.', isMe: false },
-        { id: 3, text: 'Are we still on for the trip tomorrow?', isMe: true },
-        { id: 4, text: 'Absolutely! I have everything ready.', isMe: false },
-        { id: 5, text: 'Perfect. What time should we meet?', isMe: true },
-        { id: 6, text: 'Let s say 9:00 AM at the station.', isMe: false },
-        { id: 7, text: 'Sounds good! See you then.', isMe: true },
-    ],
-    2: [
-        { id: 1, text: 'Hey Bob', isMe: true },
-        { id: 2, text: 'What is up?', isMe: false },
-        { id: 3, text: 'Can you send me the details?', isMe: false },
-    ],
-    3: [
-         { id: 1, text: 'I fixed the issue you were having.', isMe: true },
-         { id: 2, text: 'Oh wow, that was fast!', isMe: false },
-         { id: 3, text: 'Thanks for the help!', isMe: false },
-    ],
-    4: [
-        { id: 1, text: 'Hello David', isMe: true },
-        { id: 2, text: 'Are we still meeting?', isMe: false}
-    ]
 }
 
-// --- State ---
-const contacts = ref(mockContacts);
-const selectedContact = ref(mobile.value ? null : mockContacts[0]); // Null on mobile (list first), first on desktop
-const newMessage = ref('');
-const messagesStore = ref(mockMessages); // Use a ref so we can update it
-const messagesContainer = ref(null);
-
-// --- Computed ---
-const currentMessages = computed(() => {
-    if (!selectedContact.value) return [];
-    return messagesStore.value[selectedContact.value.id] || [];
-});
-
-// --- Methods ---
-const selectContact = (contact) => {
-    selectedContact.value = contact;
-    scrollToBottom();
-};
-
-const sendMessage = () => {
-    if (!newMessage.value.trim() || !selectedContact.value) return;
-
-    // Add to local store
-    if (!messagesStore.value[selectedContact.value.id]) {
-        messagesStore.value[selectedContact.value.id] = [];
-    }
-
-    messagesStore.value[selectedContact.value.id].push({
-        id: Date.now(),
-        text: newMessage.value,
-        isMe: true
+/**
+ * Load all chats for current user
+ */
+const loadChats = async () => {
+  try {
+    loadingChats.value = true;
+    const response = await fetch('http://localhost:3000/api/messages', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
     });
 
-    // Update last message in sidebar
-    const contactIdx = contacts.value.findIndex(c => c.id === selectedContact.value.id);
-    if (contactIdx !== -1) {
-        contacts.value[contactIdx].lastMessage = newMessage.value;
-        contacts.value[contactIdx].time = 'Now';
-        
-        // Move to top (optional, but nice)
-        const contact = contacts.value.splice(contactIdx, 1)[0];
-        contacts.value.unshift(contact);
+    if (!response.ok) {
+      throw new Error('Failed to load chats');
     }
 
-    newMessage.value = '';
-    scrollToBottom();
+    const data = await response.json();
     
-    // Auto-reply mock (optional fun)
-    setTimeout(() => {
-         messagesStore.value[selectedContact.value.id].push({
-            id: Date.now() + 1,
-            text: "This is a mock auto-reply!",
-            isMe: false
-        });
-        scrollToBottom();
-    }, 2000);
+    // Transform data to include counterparty info
+    chats.value = data.map(chat => ({
+      ...chat,
+      counterparty_name: chat.guide_name || chat.traveller_name,
+      counterparty_avatar: chat.guide_avatar || chat.traveller_avatar || null,
+      counterparty_id: chat.guide_id || chat.traveller_id,
+    }));
+
+  } catch (error) {
+    console.error('Error loading chats:', error);
+  } finally {
+    loadingChats.value = false;
+  }
 };
 
+/**
+ * Select a chat and load its history
+ */
+const selectChat = async (chat) => {
+  selectedChat.value = chat;
+  loadingMessages.value = true;
+  currentMessages.value = [];
+
+  try {
+    // Extract guide_id from chat object
+    const guideId = chat.guide_id || currentUserId;
+    
+    // Load message history with guide_id
+    const historyData = await loadChatHistory(chat.request_id, guideId, token);
+    
+    // Transform messages
+    currentMessages.value = historyData.messages.map(msg => ({
+      message_id: msg.message_id,
+      content: msg.content,
+      send_at: msg.send_at,
+      isMe: msg.sender_id === currentUserId,
+    }));
+
+    // Join WebSocket room with guide_id
+    joinRoom(chat.request_id, guideId);
+    
+    scrollToBottom();
+  } catch (error) {
+    console.error('Error loading chat history:', error);
+  } finally {
+    loadingMessages.value = false;
+  }
+};
+
+/**
+ * Send a message
+ */
+const sendMessage = () => {
+  if (!newMessage.value.trim() || !selectedChat.value) return;
+
+  // Extract guide_id from selected chat
+  const guideId = selectedChat.value.guide_id || currentUserId;
+  
+  // Send via WebSocket with guide_id
+  sendSocketMessage(selectedChat.value.request_id, guideId, newMessage.value.trim());
+  
+  newMessage.value = '';
+};
+
+/**
+ * Handle incoming messages from WebSocket
+ */
+const handleNewMessage = async (message) => {
+  // If message belongs to currently selected chat, add it to messages
+  if (selectedChat.value && 
+      message.chat_room_id === `request:${selectedChat.value.request_id}:guide:${selectedChat.value.guide_id || currentUserId}`) {
+    currentMessages.value.push({
+      message_id: message.message_id,
+      content: message.content,
+      send_at: message.send_at,
+      isMe: message.sender_id === currentUserId,
+    });
+    scrollToBottom();
+  } else {
+    // Message is from a different chat - reload contact list to show new chat
+    await loadChats();
+  }
+};
+
+/**
+ * Scroll to bottom of messages
+ */
 const scrollToBottom = async () => {
-    await nextTick();
-    if (messagesContainer.value) {
-        messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+  await nextTick();
+  if (messagesContainer.value) {
+    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
+  }
+};
+
+// Lifecycle
+onMounted(async () => {
+  // Connect to WebSocket
+  connect(token);
+  
+  // Listen for new messages
+  onNewMessage(handleNewMessage);
+  
+  // Load chats
+  await loadChats();
+  
+  // Check if navigating from request details with request_id
+  const requestId = route.query.request_id;
+  if (requestId) {
+    // Try to find existing chat for this request
+    const existingChat = chats.value.find(chat => chat.request_id == requestId);
+    
+    if (existingChat) {
+      // Chat exists, select it
+      selectChat(existingChat);
+    } else {
+      // New conversation - fetch request details and create chat entry
+      try {
+        const requestResponse = await fetch(`http://localhost:3000/api/requests/${requestId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+        
+        if (requestResponse.ok) {
+          const requestData = await requestResponse.json();
+          
+          // Create a chat object
+          const newChat = {
+            request_id: parseInt(requestId),
+            title: requestData.title,
+            city: requestData.city,
+            country: requestData.country,
+            date_from: requestData.date_from,
+            date_to: requestData.date_to,
+            counterparty_name: requestData.user_name,
+            counterparty_avatar: null,
+            counterparty_id: requestData.user_id,
+            traveller_id: requestData.user_id,
+            traveller_name: requestData.user_name,
+            guide_id: currentUserId, // Current user is the guide initiating chat
+          };
+          
+          // Add to chats list
+          chats.value.unshift(newChat);
+          
+          // Select this chat
+          selectChat(newChat);
+        }
+      } catch (error) {
+        console.error('Error loading request details:', error);
+      }
     }
-}
+  } else {
+    // Auto-select first chat on desktop if no request_id
+    if (!mobile.value && chats.value.length > 0) {
+      selectChat(chats.value[0]);
+    }
+  }
+});
+
+onUnmounted(() => {
+  disconnect();
+});
 </script>
 
 <style scoped>
