@@ -137,6 +137,32 @@ export function useChat() {
     }
   };
 
+  /**
+   * Generic function to listen to any WebSocket event
+   * @param {string} eventName - Name of the event
+   * @param {Function} callback - Callback function
+   */
+  const on = (eventName, callback) => {
+    if (!socket) {
+      console.error('Socket not initialized');
+      return;
+    }
+    socket.on(eventName, callback);
+  };
+
+  /**
+   * Generic function to emit any WebSocket event
+   * @param {string} eventName - Name of the event
+   * @param {Object} data - Data to send
+   */
+  const emit = (eventName, data) => {
+    if (!socket || !socket.connected) {
+      console.error('Socket not connected');
+      return;
+    }
+    socket.emit(eventName, data);
+  };
+
   // Clean up on component unmount
   onUnmounted(() => {
     disconnect();
@@ -149,6 +175,8 @@ export function useChat() {
     onNewMessage,
     loadChatHistory,
     disconnect,
+    on,
+    emit,
     isConnected,
     currentRoom,
   };

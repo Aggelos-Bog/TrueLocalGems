@@ -129,12 +129,26 @@ export async function getChatHistory(req, res) {
     // Get messages by chat_room_id
     const messages = await messagesService.getMessageHistory(chat_room_id);
 
+    // Get booking offers for this request and guide
+    const bookingsResult = await db.query(
+      `SELECT * FROM booking 
+       WHERE request_id = $1 AND guide_id = $2 
+       ORDER BY created_at ASC`,
+      [request_id, actual_guide_id]
+    );
+
+    // Merge messages and bookings, sorted by timestamp
+    const combined = [
+      ...messages.map(m => ({ type: 'message', data: m, timestamp: m.send_at })),
+      ...bookingsResult.rows.map(b => ({ type: 'booking_offer', data: b, timestamp: b.created_at }))
+    ].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
     res.status(200).json({
       request_id: parseInt(request_id),
       guide_id: actual_guide_id,
       chat_room_id,
       traveller_id,
-      messages,
+      items: combined,
     });
   } catch (err) {
     console.error("Error fetching chat history:", err);

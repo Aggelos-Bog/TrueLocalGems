@@ -5,6 +5,7 @@ import guideRoutes from "./routes/guides.routes.js";
 import requestRoutes from "./routes/request.routes.js";
 import guideBookmarksRoutes from "./routes/guideBookmarks.routes.js";
 import messagesRoutes from "./routes/messages.routes.js";
+import bookingRoutes from "./routes/booking.routes.js";
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/requests", requestRoutes);
 app.use("/api/guide-bookmarks", guideBookmarksRoutes);
 app.use("/api/messages", messagesRoutes);
+app.use("/api/bookings", bookingRoutes);
 app.use("/guides", guideRoutes);
 
 export default app;

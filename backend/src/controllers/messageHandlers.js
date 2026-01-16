@@ -158,6 +158,81 @@ export function setupMessageHandlers(io) {
       }
     });
 
+    /**
+     * Booking offer created - notify traveller
+     */
+    socket.on("booking_offer_created", async ({ request_id, guide_id, booking }) => {
+      try {
+        const chat_room_id = `request:${request_id}:guide:${guide_id}`;
+        
+        // Broadcast to room (both guide and traveller if they're in the room)
+        io.to(chat_room_id).emit("new_booking_offer", {
+          request_id,
+          guide_id,
+          booking,
+        });
+
+        console.log(`Booking offer created in room ${chat_room_id}`);
+      } catch (error) {
+        console.error("Error broadcasting booking offer:", error);
+      }
+    });
+
+    /**
+     * Booking offer accepted - notify guide
+     */
+    socket.on("booking_offer_accepted", async ({ request_id, booking_id }) => {
+      try {
+        // Get booking to find guide_id
+        const bookingResult = await db.query(
+          "SELECT guide_id, agreed, status FROM booking WHERE booking_id = $1",
+          [booking_id]
+        );
+        
+        if (bookingResult.rows.length > 0) {
+          const { guide_id, agreed, status } = bookingResult.rows[0];
+          const chat_room_id = `request:${request_id}:guide:${guide_id}`;
+          
+          io.to(chat_room_id).emit("booking_offer_updated", {
+            booking_id,
+            agreed,
+            status,
+          });
+
+          console.log(`Booking ${booking_id} accepted, status: ${status}, agreed: ${agreed}`);
+        }
+      } catch (error) {
+        console.error("Error broadcasting booking acceptance:", error);
+      }
+    });
+
+    /**
+     * Booking offer declined - notify guide
+     */
+    socket.on("booking_offer_declined", async ({ request_id, booking_id }) => {
+      try {
+        // Get booking to find guide_id
+        const bookingResult = await db.query(
+          "SELECT guide_id, status FROM booking WHERE booking_id = $1",
+          [booking_id]
+        );
+        
+        if (bookingResult.rows.length > 0) {
+          const { guide_id, status } = bookingResult.rows[0];
+          const chat_room_id = `request:${request_id}:guide:${guide_id}`;
+          
+          io.to(chat_room_id).emit("booking_offer_updated", {
+            booking_id,
+            status,
+          });
+
+          console.log(`Booking ${booking_id} declined, status: ${status}`);
+        }
+      } catch (error) {
+        console.error("Error broadcasting booking decline:", error);
+      }
+    });
+
     socket.on("disconnect", () => {
       console.log(`User disconnected: ${userId}`);
       userSockets.delete(userId);
