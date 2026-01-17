@@ -83,7 +83,7 @@
         </v-btn>
         <v-spacer />
         <v-btn
-          color="primary"
+          color="secondary"
           variant="flat"
           @click="sendOffer"
           :loading="loading"

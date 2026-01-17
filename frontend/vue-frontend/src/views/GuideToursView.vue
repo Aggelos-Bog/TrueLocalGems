@@ -65,7 +65,7 @@
               <!-- Left: Booking Info -->
               <v-col cols="12" md="5" class="booking-info pa-6">
                 <h3 class="text-h6 font-weight-bold mb-4">
-                  <v-icon icon="mdi-calendar-check" class="mr-2" color="primary"></v-icon>
+                  <v-icon icon="mdi-calendar-check" class="mr-2" color="secondary"></v-icon>
                   Booking Details
                 </h3>
 

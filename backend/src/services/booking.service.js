@@ -197,6 +197,8 @@ export async function getBookingsByGuide(guideId) {
       r.country as request_country,
       r.date_from,
       r.date_to,
+      r.description,
+      r.interests,
       u.name as traveller_name
     FROM booking b
     JOIN request r ON b.request_id = r.RFG_id
@@ -220,12 +222,18 @@ export async function getBookingsByTraveller(userId) {
       r.title as request_title,
       r.city as request_city,
       r.country as request_country,
+      r.interests as request_interests,
+      r.description as request_description,
+      r.date_from as request_date_from,
+      r.date_to as request_date_to,
       g.img_url as guide_img_url,
       g.bio as guide_bio,
       g.city as guide_city,
       g.country as guide_country,
       g.rating_avg,
       g.languages,
+      g.interests as guide_interests,
+      g.price_per_hour,
       u.name as guide_name,
       u.email as guide_email
     FROM booking b

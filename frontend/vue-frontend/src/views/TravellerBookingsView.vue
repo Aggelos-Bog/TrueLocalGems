@@ -64,7 +64,7 @@
             <!-- Request Title Header -->
             <v-expansion-panel-title class="request-header">
               <div class="d-flex align-center">
-                <v-icon icon="mdi-map-marker" class="mr-3" color="primary"></v-icon>
+                <v-icon icon="mdi-map-marker" class="mr-3" color="secondary"></v-icon>
                 <div>
                   <h3 class="text-h6 font-weight-bold">{{ requestTitle }}</h3>
                   <span class="text-caption text-grey">{{ group.length }} booking{{ group.length > 1 ? 's' : '' }}</span>
@@ -86,7 +86,7 @@
                       <!-- Left: Booking Info -->
                       <v-col cols="12" md="5" class="booking-info pa-6">
                         <h3 class="text-h6 font-weight-bold mb-4">
-                          <v-icon icon="mdi-calendar-check" class="mr-2" color="primary"></v-icon>
+                          <v-icon icon="mdi-calendar-check" class="mr-2" color="secondary"></v-icon>
                           Booking Details
                         </h3>
 
@@ -190,7 +190,6 @@
                         <div v-if="booking.status === 'completed'" class="mt-4 px-2">
                           <v-btn
                             block
-                            color="primary"
                             variant="outlined"
                             prepend-icon="mdi-star"
                           >
@@ -403,8 +402,10 @@ function formatGuideData(booking) {
     bio: booking.guide_bio,
     city: booking.guide_city,
     country: booking.guide_country,
-    rating_avg: booking.rating_avg,
-    languages: booking.languages
+    rating_avg: booking.rating_avg || 0,
+    languages: booking.languages || [],
+    interests: booking.guide_interests || [],
+    price_per_hour: booking.price_per_hour // Use guide's actual price from their profile
   };
 }
 
