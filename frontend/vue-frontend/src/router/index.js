@@ -78,6 +78,12 @@ const router = createRouter({
       component: () => import('../views/GuideToursView.vue'),
       meta: { forceScrolled: true }
     },
+    {
+      path: '/bookings',
+      name: 'my-bookings',
+      component: () => import('../views/TravellerBookingsView.vue'),
+      meta: { forceScrolled: true }
+    },
   ],
 })
 

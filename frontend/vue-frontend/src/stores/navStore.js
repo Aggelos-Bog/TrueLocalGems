@@ -26,7 +26,7 @@ export const useNavStore = defineStore('nav', () => {
         { label: 'My Trips', to: '/my-trips', icon: 'mdi-briefcase-account' },
       ],
       right: [
-        { label: 'My Trips', to: '/MyTrips', icon: 'mdi-map-marker-path' },
+        { label: 'Bookings', to: '/bookings', icon: 'mdi-map-marker-path' },
         { label: 'Favorite Guides', to: '/favorites', icon: 'mdi-heart' },
       ],
       utility: [

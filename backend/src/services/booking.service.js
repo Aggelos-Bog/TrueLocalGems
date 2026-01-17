@@ -221,14 +221,20 @@ export async function getBookingsByTraveller(userId) {
       r.city as request_city,
       r.country as request_country,
       g.img_url as guide_img_url,
-      u.name as guide_name
+      g.bio as guide_bio,
+      g.city as guide_city,
+      g.country as guide_country,
+      g.rating_avg,
+      g.languages,
+      u.name as guide_name,
+      u.email as guide_email
     FROM booking b
     JOIN request r ON b.request_id = r.RFG_id
     JOIN user_does_request udr ON r.RFG_id = udr.request_id
     JOIN guides g ON b.guide_id = g.guide_id
     JOIN users u ON g.guide_id = u.user_id
     WHERE udr.user_id = $1
-    ORDER BY b.created_at DESC
+    ORDER BY b.date DESC
   `;
 
   const result = await db.query(query, [userId]);

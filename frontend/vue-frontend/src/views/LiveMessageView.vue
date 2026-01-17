@@ -259,6 +259,58 @@
       </v-col>
       </v-row>
     </v-container>
+
+    <!-- Confirmation Dialog -->
+    <v-dialog v-model="confirmDialog.show" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5 d-flex align-center">
+          <v-icon :icon="confirmDialog.icon" :color="confirmDialog.color" class="mr-3" size="large"></v-icon>
+          {{ confirmDialog.title }}
+        </v-card-title>
+        <v-card-text class="text-body-1 py-4">
+          {{ confirmDialog.message }}
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4">
+          <v-spacer></v-spacer>
+          <v-btn
+            variant="text"
+            @click="confirmDialog.show = false"
+          >
+            Cancel
+          </v-btn>
+          <v-btn
+            :color="confirmDialog.color"
+            variant="elevated"
+            @click="confirmDialog.onConfirm"
+          >
+            {{ confirmDialog.confirmText }}
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Message Dialog (for errors/success) -->
+    <v-dialog v-model="messageDialog.show" max-width="500">
+      <v-card>
+        <v-card-title class="text-h5 d-flex align-center">
+          <v-icon :icon="messageDialog.icon" :color="messageDialog.color" class="mr-3" size="large"></v-icon>
+          {{ messageDialog.title }}
+        </v-card-title>
+        <v-card-text class="text-body-1 py-4">
+          {{ messageDialog.message }}
+        </v-card-text>
+        <v-card-actions class="px-6 pb-4">
+          <v-spacer></v-spacer>
+          <v-btn
+            :color="messageDialog.color"
+            variant="elevated"
+            @click="messageDialog.show = false"
+          >
+            OK
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
   </div>
 </template>
 
@@ -282,6 +334,25 @@ const messagesContainer = ref(null);
 const loadingChats = ref(true);
 const loadingMessages = ref(false);
 const bookingModalOpen = ref(false);
+
+// Dialog states
+const confirmDialog = ref({
+  show: false,
+  title: '',
+  message: '',
+  icon: 'mdi-help-circle',
+  color: 'primary',
+  confirmText: 'OK',
+  onConfirm: () => {}
+});
+
+const messageDialog = ref({
+  show: false,
+  title: '',
+  message: '',
+  icon: 'mdi-information',
+  color: 'primary'
+});
 
 // Get token and user info from localStorage
 const token = localStorage.getItem('token');
@@ -482,7 +553,15 @@ const createBookingOffer = async (offerData) => {
     scrollToBottom();
   } catch (error) {
     console.error('Error creating offer:', error);
-    alert(error.message || 'Failed to create booking offer. Please try again.');
+    
+    // Show error message
+    messageDialog.value = {
+      show: true,
+      title: 'Error',
+      message: error.message || 'Failed to create booking offer. Please try again.',
+      icon: 'mdi-alert-circle',
+      color: 'error'
+    };
   }
 };
 
@@ -519,9 +598,26 @@ const acceptOffer = async (bookingId) => {
       request_id: selectedChat.value.request_id,
       booking_id: bookingId,
     });
+    
+    // Show success message
+    messageDialog.value = {
+      show: true,
+      title: 'Success!',
+      message: 'Booking offer accepted successfully.',
+      icon: 'mdi-check-circle',
+      color: 'success'
+    };
   } catch (error) {
     console.error('Error accepting offer:', error);
-    alert(error.message || 'Failed to accept offer. Please try again.');
+    
+    // Show error message
+    messageDialog.value = {
+      show: true,
+      title: 'Error',
+      message: error.message || 'Failed to accept offer. Please try again.',
+      icon: 'mdi-alert-circle',
+      color: 'error'
+    };
   }
 };
 
@@ -529,6 +625,25 @@ const acceptOffer = async (bookingId) => {
  * Decline booking offer
  */
 const declineOffer = async (bookingId) => {
+  // Show confirmation dialog
+  confirmDialog.value = {
+    show: true,
+    title: 'Decline Booking Offer',
+    message: 'Are you sure you want to decline this booking offer? This action cannot be undone.',
+    icon: 'mdi-alert-circle',
+    color: 'error',
+    confirmText: 'Decline',
+    onConfirm: () => {
+      confirmDialog.value.show = false;
+      performDecline(bookingId);
+    }
+  };
+};
+
+/**
+ * Actually perform the decline action
+ */
+const performDecline = async (bookingId) => {
   try {
     const response = await fetch(`http://localhost:3000/api/bookings/${bookingId}/decline`, {
       method: 'PATCH',
@@ -537,7 +652,10 @@ const declineOffer = async (bookingId) => {
       },
     });
     
-    if (!response.ok) throw new Error('Failed to decline offer');
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({ error: 'Failed to decline offer' }));
+      throw new Error(errorData.error || 'Failed to decline offer');
+    }
     
     const updatedBooking = await response.json();
     
@@ -554,9 +672,26 @@ const declineOffer = async (bookingId) => {
       request_id: selectedChat.value.request_id,
       booking_id: bookingId,
     });
+    
+    // Show success message
+    messageDialog.value = {
+      show: true,
+      title: 'Booking Declined',
+      message: 'The booking offer has been declined.',
+      icon: 'mdi-information',
+      color: 'info'
+    };
   } catch (error) {
     console.error('Error declining offer:', error);
-    alert('Failed to decline offer. Please try again.');
+    
+    // Show error message
+    messageDialog.value = {
+      show: true,
+      title: 'Error',
+      message: error.message || 'Failed to decline offer. Please try again.',
+      icon: 'mdi-alert-circle',
+      color: 'error'
+    };
   }
 };
 
