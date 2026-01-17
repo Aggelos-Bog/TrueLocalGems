@@ -1,6 +1,7 @@
 import app from "./app.js";
 import { initializeSocketServer } from "./config/socket.js";
 import { setupMessageHandlers } from "./controllers/messageHandlers.js";
+import { initializeScheduler } from "./config/scheduler.js";
 
 const port = 3000;
 
@@ -9,6 +10,9 @@ const { httpServer, io } = initializeSocketServer(app);
 
 // Set up message event handlers
 setupMessageHandlers(io);
+
+// Initialize scheduled tasks
+initializeScheduler();
 
 // Start server
 httpServer.listen(port, () => {

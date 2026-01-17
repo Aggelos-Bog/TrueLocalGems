@@ -72,6 +72,12 @@ const router = createRouter({
       component: () => import('../views/LiveMessageView.vue'),
       meta: { forceScrolled: true }
     },
+    {
+      path: '/mytours',
+      name: 'my-tours',
+      component: () => import('../views/GuideToursView.vue'),
+      meta: { forceScrolled: true }
+    },
   ],
 })
 

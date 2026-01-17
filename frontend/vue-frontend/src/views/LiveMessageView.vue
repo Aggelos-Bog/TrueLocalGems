@@ -206,7 +206,6 @@
           <v-row no-gutters align="center" class="mb-3" v-if="isGuide">
             <v-col>
               <v-btn
-                color="primary"
                 variant="outlined"
                 prepend-icon="mdi-handshake"
                 @click="openBookingModal"

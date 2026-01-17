@@ -40,7 +40,7 @@ export const useNavStore = defineStore('nav', () => {
         { label: 'Bookmarks', to: '/bookmarks', icon: 'mdi-bookmark-multiple' },
       ],
       right: [
-        { label: 'My Tours', to: '/guide/tours', icon: 'mdi-map-plus' },
+        { label: 'My Tours', to: '/mytours', icon: 'mdi-map-plus' },
       ],
       utility: [
         { label: 'Chat', to: '/chat', icon: 'mdi-chat' },
