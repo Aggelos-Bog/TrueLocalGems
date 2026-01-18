@@ -158,22 +158,28 @@ const dateOptions = computed(() => {
   const options = [];
   const start = new Date(props.requestDateFrom);
   const end = new Date(props.requestDateTo);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0); // Reset to start of day for comparison
   
   let current = new Date(start);
   while (current <= end) {
     const dateStr = current.toISOString().split('T')[0];
     const isBooked = bookedDates.value.includes(dateStr);
+    const isPast = current < today;
     
-    options.push({
-      value: dateStr,
-      title: new Date(dateStr).toLocaleDateString('en-US', {
-        weekday: 'short',
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-      }),
-      disabled: isBooked,
-    });
+    // Only include dates that are today or in the future
+    if (!isPast) {
+      options.push({
+        value: dateStr,
+        title: new Date(dateStr).toLocaleDateString('en-US', {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric'
+        }),
+        disabled: isBooked,
+      });
+    }
     current.setDate(current.getDate() + 1);
   }
   

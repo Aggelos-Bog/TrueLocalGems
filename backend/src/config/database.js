@@ -3,7 +3,12 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const { Pool } = pg;
+const { Pool, types } = pg;
+
+// Override the default parsing for DATE type (OID 1082) to return as string
+// This prevents timezone offset issues when dates are serialized to JSON
+types.setTypeParser(1082, (val) => val); // DATE
+types.setTypeParser(1114, (val) => val); // TIMESTAMP WITHOUT TIME ZONE
 
 const pool = new Pool({
   user: process.env.PG_USER,

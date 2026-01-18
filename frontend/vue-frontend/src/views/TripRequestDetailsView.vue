@@ -289,11 +289,22 @@ const loadRequest = async () => {
                  interestsArray = data.interests;
              }
 
+            // Helper to extract just the date portion without timezone shift
+            const extractDateString = (dateStr) => {
+                if (!dateStr) return null;
+                // Backend returns dates like "2026-01-20T00:00:00.000Z" or "2026-01-20"
+                // We need to extract just the YYYY-MM-DD part
+                if (typeof dateStr === 'string') {
+                    return dateStr.substring(0, 10);
+                }
+                return null;
+            };
+
             request.value = {
                 ...data,
                 interests: interestsArray,
-                date_from: data.date_from ? data.date_from.split('T')[0] : null,
-                date_to: data.date_to ? data.date_to.split('T')[0] : null
+                date_from: extractDateString(data.date_from),
+                date_to: extractDateString(data.date_to)
             };
 
             const token = localStorage.getItem("token");

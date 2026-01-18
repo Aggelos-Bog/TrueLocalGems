@@ -62,6 +62,7 @@
                   variant="solo"
                   rounded="lg"
                   bg-color="white"
+                  :min="todayDate"
                   :rules="[v => !!v || 'Start date is required']"
                 ></v-text-field>
               </v-col>
@@ -73,6 +74,7 @@
                   variant="solo"
                   rounded="lg"
                   bg-color="white"
+                  :min="form.date_from || todayDate"
                   :rules="[v => !!v || 'End date is required']"
                 ></v-text-field>
               </v-col>
@@ -159,6 +161,9 @@ const showSuccess = ref(false);
 const countries = ref([]);
 const cityOptions = ref([]);
 const isCityDisabled = ref(true);
+
+// Today's date in YYYY-MM-DD format for min date constraint
+const todayDate = new Date().toISOString().split('T')[0];
 
 const form = ref({
   travellerName: '', // New field
