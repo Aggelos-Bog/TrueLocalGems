@@ -7,11 +7,11 @@ import bookingSchedulerService from "../services/bookingScheduler.service.js";
 export function initializeScheduler() {
   console.log("[Scheduler] Initializing scheduled tasks...");
 
-  // Schedule task to run every day at midnight (00:00)
+  // Schedule task to run every 5 minutes
   // Cron format: second minute hour day month weekday
-  // '0 0 * * *' means: at 00:00 every day
-  cron.schedule("0 0 * * *", async () => {
-    console.log("[Scheduler] Running daily booking auto-complete task");
+  // '0 */5 * * * *' means: At second 0, every 5 minutes
+  cron.schedule("0 */5 * * * *", async () => {
+    console.log("[Scheduler] Running booking auto-complete task (Every 5 mins)");
     try {
       await bookingSchedulerService.completePastBookings();
     } catch (error) {
@@ -19,5 +19,5 @@ export function initializeScheduler() {
     }
   });
 
-  console.log("[Scheduler] Daily booking auto-complete task scheduled for midnight (00:00)");
+  console.log("[Scheduler] Booking auto-complete task scheduled for every 5 minutes");
 }
