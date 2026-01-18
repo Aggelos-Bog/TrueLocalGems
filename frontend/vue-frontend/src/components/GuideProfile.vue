@@ -245,58 +245,124 @@
 
     <v-divider style="width: 100%;" class="my-10"></v-divider>
 
+    <!-- Review Form (only shown when writeReview query param is present) -->
+    <v-row v-if="showReviewForm" class="mb-8">
+      <v-col cols="12" md="8">
+        <v-card elevation="4" rounded="xl" class="pa-6 card-hover">
+          <div class="d-flex align-center mb-4">
+            <v-icon icon="mdi-star-outline" size="large" color="secondary" class="mr-3"></v-icon>
+            <div class="text-h6 font-weight-bold">Write a Review</div>
+          </div>
+
+          <v-alert v-if="reviewFormMessage" :type="reviewFormMessage.type" class="mb-4">
+            {{ reviewFormMessage.text }}
+          </v-alert>
+
+          <div class="mb-4">
+            <div class="text-subtitle-2 mb-2">Your Rating</div>
+            <v-rating
+              v-model="reviewForm.rating"
+              length="5"
+              size="32"
+              color="amber"
+              active-color="amber"
+              hover
+            ></v-rating>
+          </div>
+
+          <v-textarea
+            v-model="reviewForm.reviewText"
+            label="Your Review (optional)"
+            rows="4"
+            variant="outlined"
+            rounded="lg"
+            placeholder="Share your experience with this guide..."
+          ></v-textarea>
+
+          <div class="d-flex justify-end gap-2">
+            <v-btn
+              variant="text"
+              @click="cancelReview"
+              :disabled="reviewForm.submitting"
+            >
+              Cancel
+            </v-btn>
+            <v-btn
+              color="primary"
+              @click="submitReview"
+              :loading="reviewForm.submitting"
+              :disabled="!reviewForm.rating"
+            >
+              Submit Review
+            </v-btn>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+
     <div class="d-flex align-center mb-6">
         <div class="text-h6 font-weight-bold">Reviews</div>
+        <v-chip v-if="reviews.length > 0" class="ml-3" size="small">{{ reviews.length }}</v-chip>
     </div>
 
-    <v-row>
+    <!-- Loading State -->
+    <div v-if="reviewsLoading" class="d-flex justify-center my-8">
+      <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
+    </div>
+
+    <!-- Empty State -->
+    <div v-else-if="reviews.length === 0" class="text-center my-8">
+      <v-icon icon="mdi-comment-text-outline" size="64" color="grey-lighten-1" class="mb-3"></v-icon>
+      <div class="text-h6 text-grey">No reviews yet</div>
+      <p class="text-body-2 text-grey mt-2">Be the first to review this guide!</p>
+    </div>
+
+    <!-- Reviews List -->
+    <v-row v-else>
         <v-col cols="12" md="8">
             <v-card
-            elevation="2"
-            rounded="xl"
-            class="pa-4 mb-4 review-card card-hover"
+              v-for="review in reviews"
+              :key="review.review_id"
+              elevation="2"
+              rounded="xl"
+              class="pa-4 mb-4 review-card card-hover"
             >
                 <v-row>
-                    
                     <!-- LEFT SIDE: Avatar + user info -->
                     <v-col cols="12" md="3" class="d-flex flex-column align-center">
-                    <v-avatar size="70" class="mb-2">
-                        <v-img :src="heroImage" />
-                    </v-avatar>
+                      <v-avatar size="70" class="mb-2" color="secondary">
+                        <span class="text-h6">{{ getInitials(review.reviewer_name) }}</span>
+                      </v-avatar>
 
-                    <div class="text-subtitle-2 font-weight-bold">George</div>
-                    <div class="text-caption text-medium-emphasis mb-1">as a traveller</div>
+                      <div class="text-subtitle-2 font-weight-bold">{{ review.reviewer_name }}</div>
+                      <div class="text-caption text-medium-emphasis mb-1">as a traveller</div>
 
-                    <div class="text-caption text-medium-emphasis">
-                        21/02/2025
-                    </div>
+                      <div class="text-caption text-medium-emphasis">
+                          {{ formatReviewDate(review.created_at) }}
+                      </div>
                     </v-col>
 
                     <!-- RIGHT SIDE: Review text + stars -->
                     <v-col cols="12" md="9">
-                    
-                    <div class="text-body-2 mb-2" style="line-height: 1.4;">
-                        I had a wonderful time exploring Athens with Mina. She was a wonderful
-                        tour guide and showed me all of Athens highlights and Greek foods to try.
-                        She also gave excellent tips on where to buy good priced souvenirs and
-                        was an excellent photographer. Finally Mina was very warm and friendly
-                        and I would highly recommend her should you visit Athens. Visit June 2025.
-                    </div>
-
-                    <v-rating
-                        model-value="4"
+                      <v-rating
+                        :model-value="Number(review.rating)"
                         length="5"
                         size="20"
                         color="amber"
                         density="compact"
                         readonly
-                    ></v-rating>
-
+                        class="mb-3"
+                      ></v-rating>
+                    
+                      <div v-if="review.review_text" class="text-body-2" style="line-height: 1.4;">
+                        {{ review.review_text }}
+                      </div>
+                      <div v-else class="text-body-2 text-grey font-italic">
+                        No written review provided.
+                      </div>
                     </v-col>
-
                 </v-row>
             </v-card>
-
         </v-col>
     </v-row>
 
@@ -305,8 +371,7 @@
 
 <script setup>
   import { ref, onMounted, watch, computed } from "vue";
-  import { useRoute } from "vue-router";
-  import heroImage from "@/assets/images/home-page.png";
+  import { useRoute, useRouter } from "vue-router";
   import { useCityStore } from "@/stores/useCityStore";
   import { useNavStore } from "@/stores/navStore";
   import PhotoForUser from "@/components/PhotoForUser.vue"
@@ -332,6 +397,18 @@
   const isEditing = ref(false);
   const editForm = ref({});
 
+  // Review-related state
+  const router = useRouter();
+  const reviews = ref([]);
+  const reviewsLoading = ref(false);
+  const showReviewForm = ref(false);
+  const reviewForm = ref({
+    rating: 0,
+    reviewText: '',
+    submitting: false
+  });
+  const reviewFormMessage = ref(null);
+
   const canEdit = computed(() => {
     return Number(navStore.userId) === Number(guideId.value);
   });
@@ -340,6 +417,8 @@
   watch(guideId, (newId) => {
     if (newId) {
       loadGuide();
+      loadReviews();
+      checkReviewFormVisibility();
       // Reset edit mode if we navigate away
       isEditing.value = false;
     }
@@ -433,6 +512,9 @@
       if (!res.ok) throw new Error("Guide not found");
 
       guide.value = await res.json();
+      
+      // Load reviews after guide data is loaded successfully
+      await loadReviews();
     } catch (err) {
       error.value = err.message;
     } finally {
@@ -473,8 +555,162 @@
   };
 
 
+  // Load reviews from backend
+  async function loadReviews() {
+    console.log('loadReviews() called, guideId:', guideId.value);
+    
+    // Guard: Don't load if guideId is not available yet
+    if (!guideId.value) {
+      console.log('Skipping loadReviews - guideId not available yet');
+      return;
+    }
+    
+    reviewsLoading.value = true;
+    try {
+      const res = await fetch(`http://localhost:3000/api/reviews/guide/${guideId.value}`);
+      console.log('Reviews API response status:', res.status);
+      if (res.ok) {
+        const data = await res.json();
+        console.log('Reviews data:', data);
+        reviews.value = data;
+      } else {
+        console.error('Failed to load reviews, status:', res.status);
+      }
+    } catch (err) {
+      console.error('Error loading reviews:', err);
+    } finally {
+      reviewsLoading.value = false;
+    }
+  }
 
-  onMounted(loadGuide);
+  // Check if review form should be shown
+  async function checkReviewFormVisibility() {
+    const { writeReview, bookingId } = route.query;
+    
+    if (writeReview === 'true' && bookingId) {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        showReviewForm.value = false;
+        return;
+      }
+
+      try {
+        const res = await fetch(`http://localhost:3000/api/reviews/check/${bookingId}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // Only show form if user can review and hasn't reviewed yet
+          showReviewForm.value = data.canReview && !data.hasReviewed;
+          
+          if (data.hasReviewed) {
+            reviewFormMessage.value = {
+              type: 'info',
+              text: 'You have already submitted a review for this booking.'
+            };
+          }
+        }
+      } catch (err) {
+        console.error('Error checking review eligibility:', err);
+        showReviewForm.value = false;
+      }
+    } else {
+      showReviewForm.value = false;
+    }
+  }
+
+  // Submit review
+  async function submitReview() {
+    const { bookingId } = route.query;
+    if (!bookingId) return;
+
+    reviewForm.value.submitting = true;
+    reviewFormMessage.value = null;
+
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('http://localhost:3000/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          booking_id: Number(bookingId),
+          rating: reviewForm.value.rating,
+          review_text: reviewForm.value.reviewText || null
+        })
+      });
+
+      if (res.ok) {
+        reviewFormMessage.value = {
+          type: 'success',
+          text: 'Thank you! Your review has been submitted successfully.'
+        };
+        
+        // Reset form
+        reviewForm.value.rating = 0;
+        reviewForm.value.reviewText = '';
+        
+        // Reload guide data to update rating_avg
+        await loadGuide();
+        await loadReviews();
+        
+        // Hide form after a delay
+        setTimeout(() => {
+          showReviewForm.value = false;
+          // Clear query params
+          router.replace({ name: 'GuideProfile', params: { id: guideId.value } });
+        }, 2000);
+      } else {
+        const error = await res.json();
+        reviewFormMessage.value = {
+          type: 'error',
+          text: error.error || 'Failed to submit review. Please try again.'
+        };
+      }
+    } catch (err) {
+      console.error('Error submitting review:', err);
+      reviewFormMessage.value = {
+        type: 'error',
+        text: 'An error occurred. Please try again.'
+      };
+    } finally {
+      reviewForm.value.submitting = false;
+    }
+  }
+
+  // Cancel review
+  function cancelReview() {
+    showReviewForm.value = false;
+    reviewForm.value.rating = 0;
+    reviewForm.value.reviewText = '';
+    reviewFormMessage.value = null;
+    // Clear query params
+    router.replace({ name: 'GuideProfile', params: { id: guideId.value } });
+  }
+
+  // Get initials for avatar
+  function getInitials(name) {
+    if (!name) return '?';
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  }
+
+  // Format review date
+  function formatReviewDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit' 
+    });
+  }
+
+  onMounted(() => {
+    loadGuide(); // This will also call loadReviews internally
+    checkReviewFormVisibility();
+  });
 </script>
 
 

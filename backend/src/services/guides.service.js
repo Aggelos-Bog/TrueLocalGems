@@ -16,7 +16,10 @@ export async function getGuide(id) {
       g.public_enable,
       g.rating_avg,
       g.interests,
-      u.name AS user_name
+      u.name AS user_name,
+      (SELECT COUNT(*) FROM review r 
+       JOIN booking b ON r.booking_id = b.booking_id 
+       WHERE b.guide_id = g.guide_id) AS reviews_count
      FROM guides g
      JOIN users u ON u.user_id = g.guide_id
      WHERE g.guide_id = $1`,

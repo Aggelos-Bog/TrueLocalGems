@@ -192,8 +192,11 @@
                             block
                             variant="outlined"
                             prepend-icon="mdi-star"
+                            :disabled="reviewStatus[booking.booking_id]?.hasReviewed"
+                            @click="navigateToReview(booking)"
+                            :loading="reviewStatus[booking.booking_id]?.loading"
                           >
-                            Write a Review
+                            {{ reviewStatus[booking.booking_id]?.hasReviewed ? 'Review Submitted' : 'Write a Review' }}
                           </v-btn>
                         </div>
                       </v-col>
@@ -263,12 +266,15 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import GuideCard from '@/components/GuideCard.vue'
 
+const router = useRouter()
 const bookings = ref([])
 const loading = ref(true)
 const selectedFilter = ref('all')
 const expandedPanels = ref([]) // Track which panels are expanded
+const reviewStatus = ref({}) // Track review status for each booking
 
 // Dialog states
 const confirmDialog = ref({
@@ -345,6 +351,9 @@ onMounted(async () => {
     if (res.ok) {
       bookings.value = await res.json();
       console.log('Bookings:', bookings.value);
+      
+      // Load review status for all completed bookings
+      await loadReviewStatuses();
     } else {
       console.error("Failed to fetch bookings");
     }
@@ -354,6 +363,51 @@ onMounted(async () => {
     loading.value = false;
   }
 })
+
+// Load review status for all completed bookings
+async function loadReviewStatuses() {
+  const token = localStorage.getItem("token");
+  if (!token) return;
+
+  const completedBookings = bookings.value.filter(b => b.status === 'completed');
+  
+  for (const booking of completedBookings) {
+    reviewStatus.value[booking.booking_id] = { loading: true, hasReviewed: false };
+    
+    try {
+      const res = await fetch(`http://localhost:3000/api/reviews/check/${booking.booking_id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        reviewStatus.value[booking.booking_id] = {
+          loading: false,
+          hasReviewed: data.hasReviewed,
+          canReview: data.canReview,
+          review: data.review
+        };
+      }
+    } catch (err) {
+      console.error(`Error checking review status for booking ${booking.booking_id}:`, err);
+      reviewStatus.value[booking.booking_id] = { loading: false, hasReviewed: false };
+    }
+  }
+}
+
+// Navigate to guide profile with review flag
+function navigateToReview(booking) {
+  router.push({
+    name: 'GuideProfile',
+    params: { id: booking.guide_id },
+    query: { 
+      writeReview: 'true', 
+      bookingId: booking.booking_id 
+    }
+  });
+}
 
 // Format date for display
 function formatDate(dateString) {
