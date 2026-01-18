@@ -39,6 +39,7 @@ export async function getBookmarks(guideId) {
     JOIN user_does_request udr ON udr.request_id = r.rfg_id
     JOIN users u ON u.user_id = udr.user_id
     WHERE gbr.guide_id = $1
+      AND r.date_to >= CURRENT_DATE
     ORDER BY gbr.created_at DESC
   `;
   const result = await db.query(query, [guideId]);

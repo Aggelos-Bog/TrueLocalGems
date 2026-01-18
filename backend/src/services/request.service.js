@@ -45,6 +45,7 @@ export async function getAllRequests(country, currentUserId = null) {
     JOIN user_does_request udr ON r.rfg_id = udr.request_id
     JOIN users u ON udr.user_id = u.user_id
     ${currentUserId ? "LEFT JOIN guide_bookmarks_request gbr ON gbr.request_id = r.rfg_id AND gbr.guide_id = $1" : ""}
+    WHERE r.date_to >= CURRENT_DATE
   `;
 
   // Start building values array
@@ -58,7 +59,7 @@ export async function getAllRequests(country, currentUserId = null) {
   if (country) {
     // If currentUserId is present, country is $2, else $1.
     const paramIndex = currentUserId ? 2 : 1;
-    query += ` WHERE r.country ILIKE $${paramIndex}`;
+    query += ` AND r.country ILIKE $${paramIndex}`;
     values.push(`%${country}%`);
   }
 
