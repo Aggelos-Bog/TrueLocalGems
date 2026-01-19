@@ -53,17 +53,17 @@ export const useNavStore = defineStore('nav', () => {
   // 🎨 UI config per role
   const uiConfig = {
     guest: {
-      title: "Choose a <span class='accent text-h5 text-md-h4 font-weight-bold'>Local</span> to guide you from Athens",
+      title: "Meet Our <span class='accent text-h5 text-md-h4 font-weight-bold'>Local</span> Guides",
       heroTitle: "See the world through <br /> a<span class='accent font-weight-bold '> local's eyes</span>",
       cardType: "guide", // shows GuideCard (default)
     },
     traveller: {
-      title: "Choose a <span class='accent text-h5 text-md-h4 font-weight-bold'>Local</span> to guide you from Athens",
+      title: "Meet Our <span class='accent text-h5 text-md-h4 font-weight-bold'>Local</span> Guides",
       heroTitle: "See the world through <br /> a<span class='accent font-weight-bold '> local's eyes</span>",
       cardType: "guide",
     },
     guide: {
-      title: "Travellers looking for Guides",
+      title: "Browse <span class='accent text-h5 text-md-h4 font-weight-bold'>Trip</span> Requests",
       heroTitle: "Share your <span class='accent font-weight-bold '>local world</span> <br /> with curious travellers",
       cardType: "traveller", // this will show a TravellerCard later
     },
