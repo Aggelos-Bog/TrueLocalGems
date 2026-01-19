@@ -202,49 +202,57 @@
 
         <!-- Input Area -->
         <div v-if="selectedChat" class="bg-white px-4 py-3 border-t">
-          <!-- Create Booking Offer Button (guides only) -->
-          <v-row no-gutters align="center" class="mb-3" v-if="isGuide">
-            <v-col>
-              <v-btn
-                variant="outlined"
-                prepend-icon="mdi-handshake"
-                @click="openBookingModal"
-                block
-              >
-                Create Booking Offer
-              </v-btn>
-            </v-col>
-          </v-row>
+          <!-- Expired Chat Message -->
+          <div v-if="isChatExpired" class="text-center py-4">
+            <v-icon icon="mdi-lock" size="24" class="mr-2" color="grey"></v-icon>
+            <span class="text-grey">This chat is closed because the trip has ended.</span>
+          </div>
 
-          <!-- Message Input -->
-          <v-form @submit.prevent="sendMessage">
-            <v-row no-gutters align="center">
+          <template v-else>
+            <!-- Create Booking Offer Button (guides only) -->
+            <v-row no-gutters align="center" class="mb-3" v-if="isGuide">
               <v-col>
-                <v-text-field
-                  v-model="newMessage"
-                  placeholder="Type a message..."
-                  variant="solo"
-                  density="default"
-                  hide-details
-                  bg-color="grey-lighten-4"
-                  rounded="pill"
-                  class="message-input"
+                <v-btn
+                  variant="outlined"
+                  prepend-icon="mdi-handshake"
+                  @click="openBookingModal"
+                  block
                 >
-                </v-text-field>
-              </v-col>
-              <v-col cols="auto" class="pl-2">
-                 <v-btn 
-                    icon 
-                    color="black" 
-                    type="submit" 
-                    :disabled="!newMessage.trim()"
-                    size="large"
-                 >
-                   <v-icon size="28">mdi-send</v-icon>
-                 </v-btn>
+                  Create Booking Offer
+                </v-btn>
               </v-col>
             </v-row>
-          </v-form>
+
+            <!-- Message Input -->
+            <v-form @submit.prevent="sendMessage">
+              <v-row no-gutters align="center">
+                <v-col>
+                  <v-text-field
+                    v-model="newMessage"
+                    placeholder="Type a message..."
+                    variant="solo"
+                    density="default"
+                    hide-details
+                    bg-color="grey-lighten-4"
+                    rounded="pill"
+                    class="message-input"
+                  >
+                  </v-text-field>
+                </v-col>
+                <v-col cols="auto" class="pl-2">
+                   <v-btn 
+                      icon 
+                      color="black" 
+                      type="submit" 
+                      :disabled="!newMessage.trim()"
+                      size="large"
+                   >
+                     <v-icon size="28">mdi-send</v-icon>
+                   </v-btn>
+                </v-col>
+              </v-row>
+            </v-form>
+          </template>
         </div>
 
         <!-- Booking Offer Modal -->
@@ -372,6 +380,16 @@ if (token) {
 
 // Check if current user is a guide
 const isGuide = computed(() => currentUserRole === 1);
+
+// Check if the selected chat's request has expired (date_to has passed)
+const isChatExpired = computed(() => {
+  if (!selectedChat.value?.date_to) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dateTo = new Date(selectedChat.value.date_to);
+  dateTo.setHours(0, 0, 0, 0);
+  return dateTo < today;
+});
 
 /**
  * Load all chats for current user
