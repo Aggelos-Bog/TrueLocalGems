@@ -9,9 +9,9 @@
         
         <v-card elevation="4" rounded="xl" class="pa-8 card-hover" style="position: relative;">
           
-          <!-- Edit Button for Creator -->
+          <!-- Edit Button for Creator (only if trip hasn't ended) -->
           <v-btn
-            v-if="isCreator"
+            v-if="isCreator && !isRequestPast"
             :icon="isEditing ? 'mdi-close' : 'mdi-pencil'"
             variant="text"
             color="black"

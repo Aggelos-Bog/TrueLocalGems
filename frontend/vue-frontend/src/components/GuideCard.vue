@@ -7,29 +7,57 @@
       max-width="300"
       :to="{ name: 'GuideProfile', params: { id: guide.guide_id } }"
     >
-      <!-- Profile Image -->
-      <v-img
-        :src="guide.img_url || 'https://cdn.vuetifyjs.com/images/cards/cooking.png'"
-        height="200"
-        cover
-        class="align-end"
-      >
-        <!-- Favorite Heart Icon -->
-        <v-btn
-          v-if="nav.role === 'traveller'"
-          icon
-          variant="text"
-          class="position-absolute top-0 right-0 ma-2"
-          @click.prevent="toggleFavorite"
+      <!-- Profile Image or Letter Avatar -->
+      <div class="guide-image-container" style="height: 200px; position: relative;">
+        <!-- Actual Image (if available) -->
+        <v-img
+          v-if="guide.img_url"
+          :src="guide.img_url"
+          height="200"
+          cover
+          class="align-end"
         >
-          <v-icon
-            :color="isFavorite ? '#E3257B' : 'grey-lighten-1'"
-            size="40"
+          <!-- Favorite Heart Icon -->
+          <v-btn
+            v-if="nav.role === 'traveller'"
+            icon
+            variant="text"
+            class="position-absolute top-0 right-0 ma-2"
+            @click.prevent="toggleFavorite"
           >
-            {{ isFavorite ? 'mdi-heart' : 'mdi-heart' }}
-          </v-icon>
-        </v-btn>
-      </v-img>
+            <v-icon
+              :color="isFavorite ? '#E3257B' : 'grey-lighten-1'"
+              size="40"
+            >
+              {{ isFavorite ? 'mdi-heart' : 'mdi-heart' }}
+            </v-icon>
+          </v-btn>
+        </v-img>
+
+        <!-- Letter Avatar Fallback (if no image) -->
+        <div 
+          v-else 
+          class="letter-avatar d-flex align-center justify-center"
+        >
+          <span class="avatar-letter">{{ guideInitial }}</span>
+          
+          <!-- Favorite Heart Icon for fallback too -->
+          <v-btn
+            v-if="nav.role === 'traveller'"
+            icon
+            variant="text"
+            class="position-absolute top-0 right-0 ma-2"
+            @click.prevent="toggleFavorite"
+          >
+            <v-icon
+              :color="isFavorite ? '#E3257B' : 'grey-lighten-1'"
+              size="40"
+            >
+              {{ isFavorite ? 'mdi-heart' : 'mdi-heart' }}
+            </v-icon>
+          </v-btn>
+        </div>
+      </div>
 
       <!-- Info Section -->
       <div class="info-section pa-4">
@@ -122,12 +150,20 @@ const props = defineProps({
   }
 })
 
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { useNavStore } from '@/stores/navStore'
 import SuccessSnackbar from '@/components/SuccessSnackbar.vue'
 
 const nav = useNavStore()
 const isFavorite = ref(props.guide.is_favorite)
+
+// Compute the first letter of the guide's name for avatar fallback
+const guideInitial = computed(() => {
+  if (props.guide.name && props.guide.name.length > 0) {
+    return props.guide.name.charAt(0).toUpperCase();
+  }
+  return 'G';
+});
 
 // Snackbar state
 const snackbarVisible = ref(false)
@@ -211,5 +247,21 @@ async function toggleFavorite(e) {
 .chip-bordered:hover {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.30) !important;
   transform: translateY(-2px);
+}
+
+/* Letter Avatar Fallback Styles */
+.letter-avatar {
+  height: 200px;
+  width: 100%;
+  background: linear-gradient(135deg, rgba(116, 180, 207, 0.3) 0%, rgba(250, 208, 196, 0.3) 100%);
+  position: relative;
+}
+
+.avatar-letter {
+  font-size: 80px;
+  font-weight: bold;
+  color: #8B2548; /* Secondary color */
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  user-select: none;
 }
 </style>

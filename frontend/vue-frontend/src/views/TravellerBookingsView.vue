@@ -1,7 +1,7 @@
 <template>
   <v-main class="bg-grey-lighten-4 fill-height">
     <v-container class="py-10">
-      <div class="d-flex justify-space-between align-center mb-6">
+      <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center mb-6 ga-3">
         <h1 class="text-h4 font-weight-bold">
           <span style="font-weight: bold;" class="accent">My</span>
           <span class="ml-2 secondary font-weight-medium">Bookings</span>

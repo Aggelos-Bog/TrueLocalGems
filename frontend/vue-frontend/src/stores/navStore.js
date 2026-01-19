@@ -31,7 +31,7 @@ export const useNavStore = defineStore('nav', () => {
       ],
       utility: [
         { label: 'Chat', to: '/chat', icon: 'mdi-chat' },
-        { label: 'Logout', outlined: true, color: 'lime-darken-2', icon: 'mdi-logout' },
+        { label: 'Logout', outlined: true, color: 'error', icon: 'mdi-logout' },
       ],
     },
 
