@@ -133,12 +133,12 @@
             </div>
             
              <!-- Action Buttons -->
-            <div class="d-flex justify-center ga-4">
+            <div class="d-flex justify-center flex-wrap ga-4">
               <v-btn
                 color="secondary"
                 size="large"
                 rounded="pill"
-                min-width="200"
+                :min-width="mobile ? '150' : '200'"
                 style="text-transform: none !important;"
                 @click="router.back()"
               >
@@ -151,12 +151,13 @@
                 color="primary"
                 size="large"
                 rounded="pill"
-                min-width="200"
+                :min-width="mobile ? '150' : '200'"
                 style="text-transform: none !important;"
                 prepend-icon="mdi-message"
+                :disabled="isRequestPast"
                 @click="startChat"
               >
-                Send Message
+                {{ isRequestPast ? 'Trip Ended' : 'Send Message' }}
               </v-btn>
 
               <!-- Submit Button -->
@@ -165,7 +166,7 @@
                 color="lime-darken-2"
                 size="large"
                 rounded="pill"
-                min-width="200"
+                :min-width="mobile ? '150' : '200'"
                 style="text-transform: none !important;"
                 prepend-icon="mdi-check"
                 @click="updateRequest"
@@ -184,7 +185,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import { jwtDecode } from "jwt-decode";
@@ -213,6 +214,16 @@ const request = ref({
 const isCreator = ref(false);
 const isEditing = ref(false);
 const isGuide = ref(false);
+
+// Check if request's date_to has passed
+const isRequestPast = computed(() => {
+  if (!request.value.date_to) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dateTo = new Date(request.value.date_to);
+  dateTo.setHours(0, 0, 0, 0);
+  return dateTo < today;
+});
 
 const loadCountries = async () => {
     try {
