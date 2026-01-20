@@ -65,6 +65,7 @@
 
 <script setup>
     import { ref, watch } from 'vue'
+    import axios from 'axios'
 
     const props = defineProps({
         modelValue: String,
@@ -107,18 +108,13 @@
                 const formData = new FormData()
                 formData.append('photo', file)
 
-                const res = await fetch(props.uploadUrl, {
-                    method: 'POST',
+                const res = await axios.post(props.uploadUrl, formData, {
                     headers: {
                         "Authorization": `Bearer ${localStorage.getItem("token")}`
-                    },
-                    body: formData
+                    }
                 })
 
-                if (!res.ok) throw new Error('Upload failed')
-
-                const data = await res.json()
-                emit('update:modelValue', data.img_url)
+                emit('update:modelValue', res.data.img_url)
             } catch (err) {
                 console.error('Upload error:', err)
                 // Revert preview if needed or show error

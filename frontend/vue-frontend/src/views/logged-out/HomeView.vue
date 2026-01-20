@@ -36,6 +36,7 @@
   import TravellerCard from '@/components/TravellerCard.vue'
   import { useNavStore } from '@/stores/navStore'
   import { ref, onMounted, onUnmounted, watch, computed } from 'vue'
+  import axios from 'axios'
 
   const nav = useNavStore()
 
@@ -65,15 +66,11 @@
         const headers = {};
         if (token) headers["Authorization"] = `Bearer ${token}`;
 
-        const res = await fetch(`http://localhost:3000/guides/search?country=${country}`, { headers });
-        if (res.ok) {
-          publicGuides.value = await res.json();
-        } else {
-          const err = await res.json();
-          alert(err.error || "Search failed");
-        }
+        const res = await axios.get(`http://localhost:3000/guides/search?country=${country}`, { headers });
+        publicGuides.value = res.data;
       } catch (e) {
         console.error("Search error:", e);
+        alert(e.response?.data?.error || "Search failed");
       }
     } else {
       // User is searching for Requests (because they are a Guide)
@@ -89,12 +86,8 @@
         headers["Authorization"] = `Bearer ${token}`;
       }
 
-      const res = await fetch('http://localhost:3000/guides/public', {
-        headers
-      })
-      if (res.ok) {
-        publicGuides.value = await res.json()
-      }
+      const res = await axios.get('http://localhost:3000/guides/public', { headers });
+      publicGuides.value = res.data;
     } catch (e) {
       console.error('Failed to fetch guides:', e)
     }
@@ -113,11 +106,8 @@
         url += `?country=${country}`;
       }
 
-      const res = await fetch(url, { headers });
-      if (res.ok) {
-        const data = await res.json();
-        requests.value = data;
-      }
+      const res = await axios.get(url, { headers });
+      requests.value = res.data;
     } catch (e) {
       console.error('Failed to fetch requests:', e);
     }

@@ -328,6 +328,7 @@ import { useDisplay } from 'vuetify';
 import { useRoute } from 'vue-router';
 import { useChat } from '@/composables/useChat';
 import BookingOfferModal from '@/components/BookingOfferModal.vue';
+import axios from 'axios';
 
 const { mobile } = useDisplay();
 const route = useRoute();
@@ -397,17 +398,13 @@ const isChatExpired = computed(() => {
 const loadChats = async () => {
   try {
     loadingChats.value = true;
-    const response = await fetch('http://localhost:3000/api/messages', {
+    const response = await axios.get('http://localhost:3000/api/messages', {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to load chats');
-    }
-
-    const data = await response.json();
+    const data = response.data;
     
     // Transform data to include counterparty info
     chats.value = data.map(chat => ({
@@ -534,25 +531,16 @@ const openBookingModal = () => {
  */
 const createBookingOffer = async (offerData) => {
   try {
-    const response = await fetch('http://localhost:3000/api/bookings', {
-      method: 'POST',
+    const response = await axios.post('http://localhost:3000/api/bookings', {
+      request_id: selectedChat.value.request_id,
+      ...offerData,
+    }, {
       headers: {
         'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        request_id: selectedChat.value.request_id,
-        ...offerData,
-      }),
     });
     
-    if (!response.ok) {
-      // Extract error message from response
-      const errorData = await response.json().catch(() => ({ error: 'Failed to create offer' }));
-      throw new Error(errorData.error || 'Failed to create offer');
-    }
-    
-    const booking = await response.json();
+    const booking = response.data;
     
     // Add to local messages immediately for guide
     currentMessages.value.push({
@@ -576,7 +564,7 @@ const createBookingOffer = async (offerData) => {
     messageDialog.value = {
       show: true,
       title: 'Error',
-      message: error.message || 'Failed to create booking offer. Please try again.',
+      message: error.response?.data?.error || 'Failed to create booking offer. Please try again.',
       icon: 'mdi-alert-circle',
       color: 'error'
     };
@@ -588,20 +576,13 @@ const createBookingOffer = async (offerData) => {
  */
 const acceptOffer = async (bookingId) => {
   try {
-    const response = await fetch(`http://localhost:3000/api/bookings/${bookingId}/accept`, {
-      method: 'PATCH',
+    const response = await axios.patch(`http://localhost:3000/api/bookings/${bookingId}/accept`, {}, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
     
-    if (!response.ok) {
-      // Extract error message from response
-      const errorData = await response.json().catch(() => ({ error: 'Failed to accept offer' }));
-      throw new Error(errorData.error || 'Failed to accept offer');
-    }
-    
-    const updatedBooking = await response.json();
+    const updatedBooking = response.data;
     
     // Update local message
     const msgIndex = currentMessages.value.findIndex(
@@ -632,7 +613,7 @@ const acceptOffer = async (bookingId) => {
     messageDialog.value = {
       show: true,
       title: 'Error',
-      message: error.message || 'Failed to accept offer. Please try again.',
+      message: error.response?.data?.error || 'Failed to accept offer. Please try again.',
       icon: 'mdi-alert-circle',
       color: 'error'
     };
@@ -663,19 +644,13 @@ const declineOffer = async (bookingId) => {
  */
 const performDecline = async (bookingId) => {
   try {
-    const response = await fetch(`http://localhost:3000/api/bookings/${bookingId}/decline`, {
-      method: 'PATCH',
+    const response = await axios.patch(`http://localhost:3000/api/bookings/${bookingId}/decline`, {}, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
     
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to decline offer' }));
-      throw new Error(errorData.error || 'Failed to decline offer');
-    }
-    
-    const updatedBooking = await response.json();
+    const updatedBooking = response.data;
     
     // Update local message
     const msgIndex = currentMessages.value.findIndex(
@@ -706,7 +681,7 @@ const performDecline = async (bookingId) => {
     messageDialog.value = {
       show: true,
       title: 'Error',
-      message: error.message || 'Failed to decline offer. Please try again.',
+      message: error.response?.data?.error || 'Failed to decline offer. Please try again.',
       icon: 'mdi-alert-circle',
       color: 'error'
     };
@@ -797,37 +772,35 @@ onMounted(async () => {
     } else {
       // New conversation - fetch request details and create chat entry
       try {
-        const requestResponse = await fetch(`http://localhost:3000/api/requests/${requestId}`, {
+        const requestResponse = await axios.get(`http://localhost:3000/api/requests/${requestId}`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
         });
         
-        if (requestResponse.ok) {
-          const requestData = await requestResponse.json();
-          
-          // Create a chat object
-          const newChat = {
-            request_id: parseInt(requestId),
-            title: requestData.title,
-            city: requestData.city,
-            country: requestData.country,
-            date_from: requestData.date_from,
-            date_to: requestData.date_to,
-            counterparty_name: requestData.user_name,
-            counterparty_avatar: null,
-            counterparty_id: requestData.user_id,
-            traveller_id: requestData.user_id,
-            traveller_name: requestData.user_name,
-            guide_id: currentUserId, // Current user is the guide initiating chat
-          };
-          
-          // Add to chats list
-          chats.value.unshift(newChat);
-          
-          // Select this chat
-          selectChat(newChat);
-        }
+        const requestData = requestResponse.data;
+        
+        // Create a chat object
+        const newChat = {
+          request_id: parseInt(requestId),
+          title: requestData.title,
+          city: requestData.city,
+          country: requestData.country,
+          date_from: requestData.date_from,
+          date_to: requestData.date_to,
+          counterparty_name: requestData.user_name,
+          counterparty_avatar: null,
+          counterparty_id: requestData.user_id,
+          traveller_id: requestData.user_id,
+          traveller_name: requestData.user_name,
+          guide_id: currentUserId, // Current user is the guide initiating chat
+        };
+        
+        // Add to chats list
+        chats.value.unshift(newChat);
+        
+        // Select this chat
+        selectChat(newChat);
       } catch (error) {
         console.error('Error loading request details:', error);
       }

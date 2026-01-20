@@ -153,6 +153,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import axios from 'axios'
 import TravellerCard from '@/components/TravellerCard.vue'
 
 const bookings = ref([])
@@ -191,18 +192,14 @@ onMounted(async () => {
       return;
     }
 
-    const res = await fetch('http://localhost:3000/api/bookings/my-bookings', {
+    const res = await axios.get('http://localhost:3000/api/bookings/my-bookings', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
-    if (res.ok) {
-      bookings.value = await res.json();
-      console.log('Bookings:', bookings.value);
-    } else {
-      console.error("Failed to fetch bookings");
-    }
+    bookings.value = res.data;
+    console.log('Bookings:', bookings.value);
   } catch (err) {
     console.error("Error fetching bookings:", err);
   } finally {

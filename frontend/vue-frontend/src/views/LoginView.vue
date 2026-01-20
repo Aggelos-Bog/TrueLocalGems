@@ -82,6 +82,7 @@
   import { useRouter } from "vue-router";
   import { useNavStore } from '@/stores/navStore'
   import SuccessSnackbar from '@/components/SuccessSnackbar.vue'
+  import axios from 'axios'
 
   const navStore = useNavStore()
   const router = useRouter();
@@ -113,43 +114,33 @@ const handleLogin = async () => {
   showError.value = false;
 
   try {
-    const res = await fetch("http://localhost:3000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email: email.value,
-        password: password.value
-      })
+    const res = await axios.post("http://localhost:3000/api/auth/login", {
+      email: email.value,
+      password: password.value
     });
 
-    const data = await res.json();
+    const data = res.data;
 
-    if (res.ok) {
-      localStorage.setItem("token", data.token);
-      // 🔥 Convert numeric role → string
-      const roleString = data.user.role === 1 ? "guide" : "traveller";
+    localStorage.setItem("token", data.token);
+    // 🔥 Convert numeric role → string
+    const roleString = data.user.role === 1 ? "guide" : "traveller";
 
-       // 3️⃣ Load new token into store (VERY IMPORTANT 🔥)
-      navStore.loadFromToken();  
+     // 3️⃣ Load new token into store (VERY IMPORTANT 🔥)
+    navStore.loadFromToken();  
 
-      // 🔥 Update Pinia
-      navStore.setRole(roleString);
+    // 🔥 Update Pinia
+    navStore.setRole(roleString);
 
-      showSuccess.value = true;
+    showSuccess.value = true;
+    
+    // Delay redirect to show success message
+    setTimeout(() => {
+      router.push("/");
+    }, 1500);
       
-      // Delay redirect to show success message
-      setTimeout(() => {
-        router.push("/");
-      }, 1500);
-      
-    } else {
-      loading.value = false;
-      errorMessage.value = data.error || "Login failed";
-      showError.value = true;
-    }
   } catch (err) {
     loading.value = false;
-    errorMessage.value = "An unexpected error occurred";
+    errorMessage.value = err.response?.data?.error || "Login failed";
     showError.value = true;
     console.error(err);
   }

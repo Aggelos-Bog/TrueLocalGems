@@ -148,6 +148,7 @@ import { ref, watch, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useCityStore } from "@/stores/useCityStore";
 import { useDisplay } from 'vuetify';
+import axios from 'axios';
 
 const { mobile } = useDisplay();
 
@@ -179,10 +180,10 @@ const form = ref({
 // Load Countries
 const loadCountries = async () => {
     try {
-      const res = await fetch(
+      const res = await axios.get(
         'https://restcountries.com/v3.1/region/europe?fields=name,cca2'
       );
-      const data = await res.json();
+      const data = res.data;
 
       countries.value = data
         .map(c => ({
@@ -225,16 +226,11 @@ async function submitRequest() {
       interests: form.value.interests.join(', ') // Convert array to string for text column
     };
 
-    const res = await fetch('http://localhost:3000/api/requests', {
-      method: "POST",
+    await axios.post('http://localhost:3000/api/requests', payload, {
       headers: {
-        "Content-Type": "application/json",
         "Authorization": `Bearer ${localStorage.getItem("token")}`
-      },
-      body: JSON.stringify(payload)
+      }
     });
-
-    if (!res.ok) throw new Error("Failed to create request");
 
     showSuccess.value = true;
     setTimeout(() => {
@@ -252,15 +248,12 @@ async function submitRequest() {
 // Function to load current user
 const loadUser = async () => {
     try {
-        const res = await fetch('http://localhost:3000/api/auth/me', {
+        const res = await axios.get('http://localhost:3000/api/auth/me', {
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("token")}`
             }
         });
-        if (res.ok) {
-            const userData = await res.json();
-            form.value.travellerName = userData.name;
-        }
+        form.value.travellerName = res.data.name;
     } catch (err) {
         console.error("Failed to load user:", err);
     }

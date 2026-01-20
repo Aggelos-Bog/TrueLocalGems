@@ -190,6 +190,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { useDisplay } from 'vuetify';
 import { jwtDecode } from "jwt-decode";
 import { useCityStore } from "@/stores/useCityStore";
+import axios from 'axios';
 
 const { mobile } = useDisplay();
 const route = useRoute();
@@ -227,10 +228,10 @@ const isRequestPast = computed(() => {
 
 const loadCountries = async () => {
     try {
-      const res = await fetch(
+      const res = await axios.get(
         'https://restcountries.com/v3.1/region/europe?fields=name,cca2'
       );
-      const data = await res.json();
+      const data = res.data;
 
       countries.value = data
         .map(c => ({
@@ -284,55 +285,51 @@ const loadRequest = async () => {
         const id = route.params.id;
         if (!id) return;
 
-        const res = await fetch(`http://localhost:3000/api/requests/${id}`, {
+        const res = await axios.get(`http://localhost:3000/api/requests/${id}`, {
             headers: {
                 "Authorization": `Bearer ${localStorage.getItem("token")}`
             }
         });
 
-        if (res.ok) {
-            const data = await res.json();
-            
-             let interestsArray = [];
-             if (data.interests && typeof data.interests === 'string') {
-                 interestsArray = data.interests.split(',').map(s => s.trim());
-             } else if (Array.isArray(data.interests)) {
-                 interestsArray = data.interests;
-             }
+        const data = res.data;
+        
+        let interestsArray = [];
+        if (data.interests && typeof data.interests === 'string') {
+            interestsArray = data.interests.split(',').map(s => s.trim());
+        } else if (Array.isArray(data.interests)) {
+            interestsArray = data.interests;
+        }
 
-            // Helper to extract just the date portion without timezone shift
-            const extractDateString = (dateStr) => {
-                if (!dateStr) return null;
-                // Backend returns dates like "2026-01-20T00:00:00.000Z" or "2026-01-20"
-                // We need to extract just the YYYY-MM-DD part
-                if (typeof dateStr === 'string') {
-                    return dateStr.substring(0, 10);
-                }
-                return null;
-            };
-
-            request.value = {
-                ...data,
-                interests: interestsArray,
-                date_from: extractDateString(data.date_from),
-                date_to: extractDateString(data.date_to)
-            };
-
-            const token = localStorage.getItem("token");
-            if (token && data.user_id) {
-                try {
-                    const decoded = jwtDecode(token);
-                    const currentUserId = decoded.id || decoded.user_id;
-                    
-                    if (currentUserId == data.user_id) {
-                        isCreator.value = true;
-                    }
-                } catch (e) {
-                    console.error("Error decoding token:", e);
-                }
+        // Helper to extract just the date portion without timezone shift
+        const extractDateString = (dateStr) => {
+            if (!dateStr) return null;
+            // Backend returns dates like "2026-01-20T00:00:00.000Z" or "2026-01-20"
+            // We need to extract just the YYYY-MM-DD part
+            if (typeof dateStr === 'string') {
+                return dateStr.substring(0, 10);
             }
-        } else {
-            console.error("Failed to fetch request");
+            return null;
+        };
+
+        request.value = {
+            ...data,
+            interests: interestsArray,
+            date_from: extractDateString(data.date_from),
+            date_to: extractDateString(data.date_to)
+        };
+
+        const token = localStorage.getItem("token");
+        if (token && data.user_id) {
+            try {
+                const decoded = jwtDecode(token);
+                const currentUserId = decoded.id || decoded.user_id;
+                
+                if (currentUserId == data.user_id) {
+                    isCreator.value = true;
+                }
+            } catch (e) {
+                console.error("Error decoding token:", e);
+            }
         }
     } catch (err) {
         console.error("Error loading request:", err);
@@ -349,23 +346,15 @@ const updateRequest = async () => {
             interests: Array.isArray(request.value.interests) ? request.value.interests.join(', ') : request.value.interests
         };
 
-        const res = await fetch(`http://localhost:3000/api/requests/${id}`, {
-            method: 'PATCH',
+        await axios.patch(`http://localhost:3000/api/requests/${id}`, payload, {
             headers: {
-                "Content-Type": "application/json",
                 "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify(payload)
+            }
         });
 
-        if (res.ok) {
-            console.log("Request updated successfully");
-            isEditing.value = false;
-            await loadRequest();
-        } else {
-            const error = await res.json();
-            console.error("Failed to update request:", error);
-        }
+        console.log("Request updated successfully");
+        isEditing.value = false;
+        await loadRequest();
     } catch (err) {
         console.error("Error updating request:", err);
     }

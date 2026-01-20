@@ -185,6 +185,7 @@
 <script setup>
   import { ref, computed, watch  } from "vue";
   import { useRouter } from "vue-router";
+  import axios from 'axios';
   // import { useNavStore } from '@/stores/navStore'; // Unused
   import { useCityStore } from "@/stores/useCityStore";  
   import SuccessSnackbar from '@/components/SuccessSnackbar.vue'
@@ -249,40 +250,25 @@
     loading.value = true;
 
     try {
-      const res = await fetch("http://localhost:3000/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: name.value,
-          email: email.value,
-          password: password.value,
-          role: role.value === "Traveller" ? 0 : 1,
-          guideDetails: guide.value   // <-- Extra guide data
-        })
+      await axios.post("http://localhost:3000/api/auth/register", {
+        name: name.value,
+        email: email.value,
+        password: password.value,
+        role: role.value === "Traveller" ? 0 : 1,
+        guideDetails: guide.value   // <-- Extra guide data
       });
 
-      const data = await res.json();
+      // No auto-login anymore. Token is not returned here.
+      showSuccess.value = true;
 
-      if (res.ok) {
-        // No auto-login anymore. Token is not returned here.
-        // localStorage.setItem("token", data.token);
+      // Delay redirect
+      setTimeout(() => {
+        router.push("/check-email");
+      }, 1500);
 
-        // const roleString = data.user.role === 1 ? "guide" : "traveller";
-        // navStore.setRole(roleString);
-
-        showSuccess.value = true;
-
-        // Delay redirect
-        setTimeout(() => {
-          router.push("/check-email");
-        }, 1500);
-
-      } else {
-        loading.value = false;
-        alert(data.error);
-      }
     } catch (err) {
       loading.value = false;
+      alert(err.response?.data?.error || "Registration failed");
       console.error(err);
     }
   };
@@ -292,8 +278,8 @@
   // Load available languages from external API
   const loadLanguages = async () => {
     try {
-      const res = await fetch("https://api.languagetoolplus.com/v2/languages");
-      const data = await res.json();
+      const res = await axios.get("https://api.languagetoolplus.com/v2/languages");
+      const data = res.data;
 
       // Extract language names
       const names = data.map(l => l.name);
@@ -310,10 +296,10 @@
 
  const loadCountries = async () => {
   try {
-    const res = await fetch(
+    const res = await axios.get(
       'https://restcountries.com/v3.1/region/europe?fields=name,cca2'
-    )
-    const data = await res.json()
+    );
+    const data = res.data;
 
     countries.value = data
       .map(c => ({

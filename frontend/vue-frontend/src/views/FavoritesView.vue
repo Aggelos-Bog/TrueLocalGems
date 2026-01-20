@@ -42,6 +42,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import GuideCard from '@/components/GuideCard.vue'
 
 const favorites = ref([])
@@ -52,17 +53,13 @@ onMounted(async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const res = await fetch('http://localhost:3000/guides/favorites', {
+    const res = await axios.get('http://localhost:3000/guides/favorites', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
-    if (res.ok) {
-      favorites.value = await res.json();
-    } else {
-      console.error("Failed to fetch favorites");
-    }
+    favorites.value = res.data;
   } catch (err) {
     console.error("Error fetching favorites:", err);
   } finally {

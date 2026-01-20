@@ -42,6 +42,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import axios from 'axios'
 import TravellerCard from '@/components/TravellerCard.vue'
 
 const bookmarks = ref([])
@@ -52,17 +53,13 @@ onMounted(async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
 
-    const res = await fetch('http://localhost:3000/api/guide-bookmarks/', {
+    const res = await axios.get('http://localhost:3000/api/guide-bookmarks/', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
-    if (res.ok) {
-      bookmarks.value = await res.json();
-    } else {
-      console.error("Failed to fetch bookmarks");
-    }
+    bookmarks.value = res.data;
   } catch (err) {
     console.error("Error fetching bookmarks:", err);
   } finally {

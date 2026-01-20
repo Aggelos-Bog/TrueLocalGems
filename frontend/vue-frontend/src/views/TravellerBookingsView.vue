@@ -267,6 +267,7 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
 import GuideCard from '@/components/GuideCard.vue'
 
 const router = useRouter()
@@ -342,21 +343,17 @@ onMounted(async () => {
       return;
     }
 
-    const res = await fetch('http://localhost:3000/api/bookings/my-bookings', {
+    const res = await axios.get('http://localhost:3000/api/bookings/my-bookings', {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
 
-    if (res.ok) {
-      bookings.value = await res.json();
-      console.log('Bookings:', bookings.value);
-      
-      // Load review status for all completed bookings
-      await loadReviewStatuses();
-    } else {
-      console.error("Failed to fetch bookings");
-    }
+    bookings.value = res.data;
+    console.log('Bookings:', bookings.value);
+    
+    // Load review status for all completed bookings
+    await loadReviewStatuses();
   } catch (err) {
     console.error("Error fetching bookings:", err);
   } finally {
@@ -375,21 +372,19 @@ async function loadReviewStatuses() {
     reviewStatus.value[booking.booking_id] = { loading: true, hasReviewed: false };
     
     try {
-      const res = await fetch(`http://localhost:3000/api/reviews/check/${booking.booking_id}`, {
+      const res = await axios.get(`http://localhost:3000/api/reviews/check/${booking.booking_id}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
-      if (res.ok) {
-        const data = await res.json();
-        reviewStatus.value[booking.booking_id] = {
-          loading: false,
-          hasReviewed: data.hasReviewed,
-          canReview: data.canReview,
-          review: data.review
-        };
-      }
+      const data = res.data;
+      reviewStatus.value[booking.booking_id] = {
+        loading: false,
+        hasReviewed: data.hasReviewed,
+        canReview: data.canReview,
+        review: data.review
+      };
     } catch (err) {
       console.error(`Error checking review status for booking ${booking.booking_id}:`, err);
       reviewStatus.value[booking.booking_id] = { loading: false, hasReviewed: false };
@@ -472,20 +467,13 @@ async function acceptBooking(bookingId) {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:3000/api/bookings/${bookingId}/accept`, {
-      method: 'PATCH',
+    const response = await axios.patch(`http://localhost:3000/api/bookings/${bookingId}/accept`, {}, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${token}`
       }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to accept booking' }));
-      throw new Error(errorData.error || 'Failed to accept booking');
-    }
-
-    const updatedBooking = await response.json();
+    const updatedBooking = response.data;
     
     // Update local booking data
     Object.assign(booking, updatedBooking);
@@ -507,7 +495,7 @@ async function acceptBooking(bookingId) {
     messageDialog.value = {
       show: true,
       title: 'Error',
-      message: error.message || 'Failed to accept booking. Please try again.',
+      message: error.response?.data?.error || 'Failed to accept booking. Please try again.',
       icon: 'mdi-alert-circle',
       color: 'error'
     };
@@ -545,20 +533,13 @@ async function performDecline(bookingId) {
 
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:3000/api/bookings/${bookingId}/decline`, {
-      method: 'PATCH',
+    const response = await axios.patch(`http://localhost:3000/api/bookings/${bookingId}/decline`, {}, {
       headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
+        'Authorization': `Bearer ${token}`
       }
     });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ error: 'Failed to decline booking' }));
-      throw new Error(errorData.error || 'Failed to decline booking');
-    }
-
-    const updatedBooking = await response.json();
+    const updatedBooking = response.data;
     
     // Update local booking data
     Object.assign(booking, updatedBooking);
@@ -580,7 +561,7 @@ async function performDecline(bookingId) {
     messageDialog.value = {
       show: true,
       title: 'Error',
-      message: error.message || 'Failed to decline booking. Please try again.',
+      message: error.response?.data?.error || 'Failed to decline booking. Please try again.',
       icon: 'mdi-alert-circle',
       color: 'error'
     };

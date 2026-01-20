@@ -153,6 +153,7 @@ const props = defineProps({
 import { ref, watch, computed } from 'vue'
 import { useNavStore } from '@/stores/navStore'
 import SuccessSnackbar from '@/components/SuccessSnackbar.vue'
+import axios from 'axios'
 
 const nav = useNavStore()
 const isFavorite = ref(props.guide.is_favorite)
@@ -189,21 +190,12 @@ async function toggleFavorite(e) {
   isFavorite.value = !isFavorite.value;
 
   try {
-    const res = await fetch(`http://localhost:3000/guides/${props.guide.guide_id}/favorite`, {
-      method: 'POST',
+    await axios.post(`http://localhost:3000/guides/${props.guide.guide_id}/favorite`, {}, {
       headers: {
         'Authorization': `Bearer ${token}`
       }
     });
-
-    if (!res.ok) {
-      throw new Error("Failed to toggle favorite");
-    }
     
-    // Optional: Update with server response if needed
-    // const data = await res.json();
-    // isFavorite.value = data.is_favorite;
-
     // Show feedback
     if (isFavorite.value) {
       snackbarMessage.value = "Guide added to favorites"

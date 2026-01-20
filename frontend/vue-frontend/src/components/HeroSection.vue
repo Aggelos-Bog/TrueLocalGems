@@ -59,6 +59,7 @@
 import heroImage from '@/assets/images/home-page.png'
 import { ref, onMounted } from 'vue'
 import { useNavStore } from '@/stores/navStore'
+import axios from 'axios'
 
 const navStore = useNavStore()
 const destination = ref()
@@ -72,10 +73,10 @@ function onSearch() {
 
 onMounted(async () => {
   try {
-    const res = await fetch(
+    const res = await axios.get(
       'https://restcountries.com/v3.1/region/europe?fields=name'
     )
-    const data = await res.json()
+    const data = res.data
 
     countries.value = data
       .map(c => c.name.common)

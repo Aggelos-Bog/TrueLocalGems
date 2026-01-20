@@ -375,6 +375,7 @@
   import { useCityStore } from "@/stores/useCityStore";
   import { useNavStore } from "@/stores/navStore";
   import PhotoForUser from "@/components/PhotoForUser.vue"
+  import axios from 'axios';
 
 
 
@@ -479,20 +480,13 @@
           : editForm.value.interests
       };
 
-      const res = await fetch(`http://localhost:3000/guides/${guideId.value}`, {
-        method: "PUT",
+      const res = await axios.put(`http://localhost:3000/guides/${guideId.value}`, payload, {
         headers: {
-          "Content-Type": "application/json",
           "Authorization": `Bearer ${localStorage.getItem("token")}`
-        },
-        body: JSON.stringify(payload)
+        }
       });
 
-      if (!res.ok) {
-        throw new Error("Failed to update guide");
-      }
-
-      const updatedGuide = await res.json();
+      const updatedGuide = res.data;
 
       // Update UI
       guide.value = updatedGuide;
@@ -508,10 +502,8 @@
 
   async function loadGuide() {
     try {
-      const res = await fetch(`http://localhost:3000/guides/${guideId.value}`);
-      if (!res.ok) throw new Error("Guide not found");
-
-      guide.value = await res.json();
+      const res = await axios.get(`http://localhost:3000/guides/${guideId.value}`);
+      guide.value = res.data;
       
       // Load reviews after guide data is loaded successfully
       await loadReviews();
@@ -524,8 +516,8 @@
 
   const loadLanguages = async () => {
     try {
-      const res = await fetch("https://api.languagetoolplus.com/v2/languages");
-      const data = await res.json();
+      const res = await axios.get("https://api.languagetoolplus.com/v2/languages");
+      const data = res.data;
 
       const names = data.map(l => l.name);
       const uniqueNames = [...new Set(names)];
@@ -538,10 +530,10 @@
 
   const loadCountries = async () => {
     try {
-      const res = await fetch(
+      const res = await axios.get(
         'https://restcountries.com/v3.1/region/europe?fields=name,cca2'
       );
-      const data = await res.json();
+      const data = res.data;
 
       countries.value = data
         .map(c => ({
@@ -567,15 +559,11 @@
     
     reviewsLoading.value = true;
     try {
-      const res = await fetch(`http://localhost:3000/api/reviews/guide/${guideId.value}`);
+      const res = await axios.get(`http://localhost:3000/api/reviews/guide/${guideId.value}`);
       console.log('Reviews API response status:', res.status);
-      if (res.ok) {
-        const data = await res.json();
-        console.log('Reviews data:', data);
-        reviews.value = data;
-      } else {
-        console.error('Failed to load reviews, status:', res.status);
-      }
+      const data = res.data;
+      console.log('Reviews data:', data);
+      reviews.value = data;
     } catch (err) {
       console.error('Error loading reviews:', err);
     } finally {
@@ -595,21 +583,19 @@
       }
 
       try {
-        const res = await fetch(`http://localhost:3000/api/reviews/check/${bookingId}`, {
+        const res = await axios.get(`http://localhost:3000/api/reviews/check/${bookingId}`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
-        if (res.ok) {
-          const data = await res.json();
-          // Only show form if user can review and hasn't reviewed yet
-          showReviewForm.value = data.canReview && !data.hasReviewed;
-          
-          if (data.hasReviewed) {
-            reviewFormMessage.value = {
-              type: 'info',
-              text: 'You have already submitted a review for this booking.'
-            };
-          }
+        const data = res.data;
+        // Only show form if user can review and hasn't reviewed yet
+        showReviewForm.value = data.canReview && !data.hasReviewed;
+        
+        if (data.hasReviewed) {
+          reviewFormMessage.value = {
+            type: 'info',
+            text: 'You have already submitted a review for this booking.'
+          };
         }
       } catch (err) {
         console.error('Error checking review eligibility:', err);
@@ -630,51 +616,40 @@
 
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch('http://localhost:3000/api/reviews', {
-        method: 'POST',
+      await axios.post('http://localhost:3000/api/reviews', {
+        booking_id: Number(bookingId),
+        rating: reviewForm.value.rating,
+        review_text: reviewForm.value.reviewText || null
+      }, {
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          booking_id: Number(bookingId),
-          rating: reviewForm.value.rating,
-          review_text: reviewForm.value.reviewText || null
-        })
+        }
       });
 
-      if (res.ok) {
-        reviewFormMessage.value = {
-          type: 'success',
-          text: 'Thank you! Your review has been submitted successfully.'
-        };
-        
-        // Reset form
-        reviewForm.value.rating = 0;
-        reviewForm.value.reviewText = '';
-        
-        // Reload guide data to update rating_avg
-        await loadGuide();
-        await loadReviews();
-        
-        // Hide form after a delay
-        setTimeout(() => {
-          showReviewForm.value = false;
-          // Clear query params
-          router.replace({ name: 'GuideProfile', params: { id: guideId.value } });
-        }, 2000);
-      } else {
-        const error = await res.json();
-        reviewFormMessage.value = {
-          type: 'error',
-          text: error.error || 'Failed to submit review. Please try again.'
-        };
-      }
+      reviewFormMessage.value = {
+        type: 'success',
+        text: 'Thank you! Your review has been submitted successfully.'
+      };
+      
+      // Reset form
+      reviewForm.value.rating = 0;
+      reviewForm.value.reviewText = '';
+      
+      // Reload guide data to update rating_avg
+      await loadGuide();
+      await loadReviews();
+      
+      // Hide form after a delay
+      setTimeout(() => {
+        showReviewForm.value = false;
+        // Clear query params
+        router.replace({ name: 'GuideProfile', params: { id: guideId.value } });
+      }, 2000);
     } catch (err) {
       console.error('Error submitting review:', err);
       reviewFormMessage.value = {
         type: 'error',
-        text: 'An error occurred. Please try again.'
+        text: err.response?.data?.error || 'An error occurred. Please try again.'
       };
     } finally {
       reviewForm.value.submitting = false;

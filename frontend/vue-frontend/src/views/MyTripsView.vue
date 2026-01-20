@@ -39,6 +39,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
+import axios from 'axios';
 import TravellerCard from '@/components/TravellerCard.vue';
 
 const requests = ref([]);
@@ -47,17 +48,13 @@ const loading = ref(true);
 const loadMyRequests = async () => {
   try {
     const token = localStorage.getItem("token");
-    const res = await fetch('http://localhost:3000/api/requests/my-requests', {
+    const res = await axios.get('http://localhost:3000/api/requests/my-requests', {
       headers: {
         "Authorization": `Bearer ${token}`
       }
     });
     
-    if (res.ok) {
-      requests.value = await res.json();
-    } else {
-      console.error("Failed to fetch my requests");
-    }
+    requests.value = res.data;
   } catch (err) {
     console.error("Error loading my requests:", err);
   } finally {

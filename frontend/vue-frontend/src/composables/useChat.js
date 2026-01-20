@@ -1,5 +1,6 @@
 import { ref, onUnmounted } from 'vue';
 import { io } from 'socket.io-client';
+import axios from 'axios';
 
 const SOCKET_URL = 'http://localhost:3000'; // Backend URL
 
@@ -107,18 +108,13 @@ export function useChat() {
         url += `?guide_id=${guideId}`;
       }
       
-      const response = await fetch(url, {
+      const response = await axios.get(url, {
         headers: {
           'Authorization': `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to load chat history');
-      }
-
-      const data = await response.json();
-      return data;
+      return response.data;
     } catch (error) {
       console.error('Error loading chat history:', error);
       throw error;

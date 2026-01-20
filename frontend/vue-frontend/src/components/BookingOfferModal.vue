@@ -97,6 +97,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
   modelValue: {
@@ -138,16 +139,13 @@ const offerData = ref({
 const fetchBookedDates = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await fetch(`http://localhost:3000/api/bookings/booked-dates?request_id=${props.requestId}`, {
+    const response = await axios.get(`http://localhost:3000/api/bookings/booked-dates?request_id=${props.requestId}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      bookedDates.value = data.bookedDates || [];
-    }
+    bookedDates.value = response.data.bookedDates || [];
   } catch (error) {
     console.error('Error fetching booked dates:', error);
   }
